@@ -1,3 +1,5 @@
+use std::process::Command;
+
 use sysinfo::System;
 
 pub fn is_valid_ip(ip: &str) -> bool {
@@ -17,6 +19,7 @@ pub struct SystemInformation {
 	long_os_version: String,
 	kernel_version: String,
 	cpu_model: String,
+	gpu_models: Vec<String>,
 	memory_total: u64,
 }
 
@@ -25,30 +28,44 @@ impl SystemInformation {
 		let mut sys = System::new_all();
 		sys.refresh_all();
 
-		let cpu_model = match sys.global_cpu_info().brand().to_string().as_str() {
-			"" => "Unknown".to_string(),
-			s => s.to_string(),
-		};
-
 		SystemInformation {
 			host_name: System::host_name().unwrap_or("Unknown".into()),
 			os_version: System::os_version().unwrap_or("Unknown".into()),
 			long_os_version: System::long_os_version().unwrap_or("Unknown".into()),
 			kernel_version: System::kernel_version().unwrap_or("Unknown".into()),
-			cpu_model,
+			cpu_model: sys.cpus()[0].brand().to_string().trim().to_string(),
+			gpu_models: get_gpu_models(),
 			memory_total: sys.total_memory(),
 		}
 	}
 
 	pub fn to_string(&self) -> String {
+		let gpus = format!("{{{}}}", self.gpu_models.join(", "));
 		format!(
-			"{},{},{},{},{},{}",
+			"{}, {}, {}, {}, {}, {}, {}",
 			self.host_name,
 			self.os_version,
 			self.long_os_version,
 			self.kernel_version,
 			self.cpu_model,
+			gpus,
 			self.memory_total,
 		)
+	}
+}
+
+fn get_gpu_models() -> Vec<String> {
+	let output = Command::new("powershell")
+		.args(["-Command", "(Get-WmiObject Win32_VideoController).Name"])
+		.output();
+
+	if let Ok(output) = output {
+		let output_str = String::from_utf8_lossy(&output.stdout);
+		output_str
+			.lines()
+			.map(|s| s.trim().to_string())
+			.collect()
+	} else {
+		vec!["Unknown".to_string()]
 	}
 }
