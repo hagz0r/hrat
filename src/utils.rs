@@ -39,6 +39,10 @@ impl SystemInformation {
 		}
 	}
 
+	/* Expected format 
+		"HostName, OS short, OS Long, Kernel Version, CPU Model, {GPU Model 1, GPU Model 2}, Total Memory"
+	 */
+
 	pub fn to_string(&self) -> String {
 		let gpus = format!("{{{}}}", self.gpu_models.join(", "));
 		format!(

