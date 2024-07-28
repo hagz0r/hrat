@@ -21,7 +21,6 @@ fn main() {
 fn connect_with_host(server_addr: &str, port: &str) {
 	let (mut socket, _response) = connect(format!("ws://{}:{}", server_addr, port)).expect("Can't connect");
 	let sysinfo = SystemInformation::get().to_string();
-	println!("{}",sysinfo);
 	socket.send(sysinfo.into()).unwrap();
 
 	loop {
