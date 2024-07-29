@@ -35,6 +35,7 @@ fn connect_with_host(server_addr: &str, port: &str) {
 			let message_type = MessageType::from_char(bytes[0] as char).expect("Invalid message type");
 			handle_message(message_type, &bytes[1..], &mut socket);
 		} else {
+			
 			continue;
 		}
 	}
