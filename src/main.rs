@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 
 use std::net::TcpStream;
 use std::panic;
@@ -9,9 +9,11 @@ use tungstenite::stream::MaybeTlsStream;
 use crate::router::{handle_message, MessageType};
 use crate::utils::SystemInformation;
 
+
 mod utils;
 mod router;
 mod handlers;
+pub type Socket = WebSocket<MaybeTlsStream<TcpStream>>;
 
 fn main() {
 	let args = std::env::args().collect::<Vec<String>>();
@@ -34,14 +36,13 @@ fn connect_with_host(server_addr: &str, port: &str) {
 			read_messages(&mut socket)
 		}));
 		if let Err(e) = res {
-			println!("Program panicked at:");
-			dbg!(e);
+			continue
 		}
 	}
 
 }
 
-fn read_messages(socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) {
+fn read_messages(socket: &mut Socket) {
 	loop {
 		let msg = socket.read();
 		if let Ok(msg) = msg {

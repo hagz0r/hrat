@@ -54,9 +54,9 @@ fn update_streaming_state(payload: &[u8]) -> Result<(), Box<dyn Error>> {
 
 	let mut state = STREAM_STATE.lock().unwrap();
 	state.is_streaming = match payload[0] as char {
-		'1'  => true,
-		'0'  => false,
-		_ => return Err("Invalid byte".into()),
+		'1'  => true,   
+		'0'  => false,  
+		_ => return Err("Invalid byte".into()),  
 	};
 
 	Ok(())
@@ -68,7 +68,7 @@ fn capture_frame(capturer: &mut Capturer, socket: &mut WebSocket<MaybeTlsStream<
 		Err(error) => {
 			return if error.kind() == std::io::ErrorKind::WouldBlock {
 				thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // 60 FPS
-				Ok(())
+				Ok(())  
 			} else {
 				Err(Box::new(error))
 			}

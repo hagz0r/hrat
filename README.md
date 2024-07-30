@@ -1,6 +1,7 @@
 # Functionality
+
++ Polymorphism of a program to bypass antivirus using encryption
 + Web server connection
-+ Create a websocket from which commands will be received
 + Sending user data to the host
 + Remote screen viewing
 + Access to the file system
@@ -35,6 +36,7 @@
 
 
 # Функционал
++ Полиморфизм программы для обхода антивирусов используя шифрование
 + Подключение по веб-серверу +
 + Создание вебсокета с которого будут приниматься комманды +
 + Отправка данных о пользователе хосту + 
