@@ -12,7 +12,7 @@
     + Text-to-Speech
     + Playing a recorded audio file
     + Microphone listening
-+ Styler
++ Stealer
     + Cookies
     + Passwords
     + Forms
