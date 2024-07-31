@@ -84,7 +84,13 @@ fn download_object(path: &Path, socket: &mut Socket) {
 }
 
 
-fn run_file(path: &Path, socket: &mut Socket) {}
+fn run_file(path: &Path, socket: &mut Socket) {
+	if std::process::Command::new(path).spawn().is_ok() {
+		socket.send("OK runned".into()).unwrap();
+		return;
+	}
+	socket.send("NO not runned".into()).unwrap()
+}
 
 fn get_path_content(path: &Path, socket: &mut Socket) {
 	let meta = fs::metadata(path);
@@ -104,7 +110,7 @@ fn get_path_content(path: &Path, socket: &mut Socket) {
 				};
 				files.push_str(&format!("{} ({})\n", obj.file_name().into_string().unwrap(), file_type));
 			}
-			socket.write(files.into()).unwrap();
+			socket.send(files.into()).unwrap();
 		}
 	}
 }
@@ -127,8 +133,14 @@ fn delete_path(path: &Path, socket: &mut Socket) {
 	} else if let Ok(link_path) = fs::read_link(path) {
 		remove(&link_path);
 	}
-	socket.write(format!("OK deleted {}", path.to_str().unwrap()).into()).unwrap()
+	socket.send(format!("OK deleted {}", path.to_str().unwrap()).into()).unwrap()
 }
 
 
-fn move_object(from: &Path, to: &Path, socket: &mut Socket) {}
+fn move_object(from: &Path, to: &Path, socket: &mut Socket) {
+	if fs::rename(from, to).is_ok() {
+		socket.send("OK deleted".into()).unwrap();
+		return;
+	}
+	socket.send("NO not deleted".into()).unwrap();
+}
