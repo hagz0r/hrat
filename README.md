@@ -8,7 +8,6 @@ system. The project is open source and welcomes contributions. The following fea
 
 ### Features
 
-
 Polymorphism and Security
 
 + Polymorphism: Bypass antivirus detection using encryption and other polymorphic techniques.
