@@ -1,70 +1,80 @@
-# Functionality
+# hrat
 
-+ Polymorphism of a program to bypass antivirus using encryption
-+ Web server connection
-+ Sending user data to the host
-+ Remote screen viewing
-+ Access to the file system
-+ Access to Task Manager
-+ Remote CMD
+### Alpha version.
+### Some of the functions not yet implemented
 
-+ Audio
-    + Text-to-Speech
-    + Playing a recorded audio file
-    + Microphone listening
-+ Styler
-    + Cookies
-    + Passwords
-    + Forms
-    + CC
-    + Clients
-        + Stim
-        + Telegram
-        + Discord
-        + FileZilla
-+ Keylogger
-+ Chat
-+ Trolling
-    + Message Boxes
-    + Opening Links in Browser
-    + Clipboard
-    + Reassign mouse buttons, bsod, forkbomb
-    + Hide Taskbar, Hide Desktop, Flip Screen
-+ Remote code execution (Rust, C#, C++, Batch, Powershell)
+hrat is a remote access tool (RAT) that offers a wide range of functionalities to remotely control and monitor a target
+system. The project is open source and welcomes contributions. The following features are available in hrat:
+
+### Features
 
 
+Polymorphism and Security
 
++ Polymorphism: Bypass antivirus detection using encryption and other polymorphic techniques.
 
-# Функционал
-+ Полиморфизм программы для обхода антивирусов используя шифрование
-+ Подключение по веб-серверу +
-+ Создание вебсокета с которого будут приниматься комманды +
-+ Отправка данных о пользователе хосту + 
-+ Возможность удаленного просмотра экрана
-+ Доступ к файловой системе
-+ Доступ к диспетчеру задач
-+ Remote CMD
+Remote Monitoring
 
-+ Аудио
-    + Text-to-Speech
-    + Проигрывание записанного аудиофайла
-    + Прослушка микрофона
-+ Стилер
-    + Куки
-    + Пароли
-    + Формы
-    + CC
-    + Клиенты
-      + Стим
-      + Телеграм
-      + Дискорд
-      + FileZilla
-+ Кейлоггер
-+ Чат
-+ Троллинг
-    + Message Box'ы 
-    + Открытие ссылок в браузере
-    + Буфер обмена
-    + Переназначение кнопок мыши, бсод, форкбомба
-    + Спрятать таскбар, спрятать рабочий стол, перевернуть экран
-+ Remote code execution (Rust, C#, C++, Batch, Powershell)
++ Remote Screen Viewing: View the target's screen in real-time.
+  Webcam Access: Access and view the target's webcam.
+  Task Manager Access: Remotely access the task manager.
+  Remote CMD: Execute commands on the target system via the command prompt.
+
+Audio
+
++ Text-to-Speech: Convert text to speech on the target system.
+  Playing Audio Files: Play recorded audio files on the target system.
+  Microphone Listening: Listen to the target's microphone.
+
+Data Retrieval
+
++ Cookies: Retrieve browser cookies.
++ Passwords: Retrieve stored passwords.
++ Forms: Retrieve form data.
++ Credit Card Information: Retrieve stored credit card information.
++ Client Data: Retrieve data from various clients such as:
+  Steam
+  Telegram
+  Discord
+
+Keylogger
+
++ Keylogging: Capture and log keystrokes.
+
+Chat
+
++ Chat Application: Communicate with the target through a built-in chat application.
+
+Trolling
+
++ Message Boxes: Display custom message boxes on the target system.
++ Opening Links: Open specified links in the target's browser.
++ Clipboard Manipulation: Access and modify the clipboard content.
++ Mouse Reassignment: Reassign mouse buttons, trigger BSOD, forkbomb, etc.
++ Taskbar and Desktop Manipulation: Hide the taskbar, hide desktop icons, flip the screen orientation.
+
+Remote Code Execution
+
++ Code Execution: Execute code remotely in various languages:
+  Rust
+  C#
+  C++
+  Batch Scripts
+  Powershell
+
+### Usage
+
+1. First you will need to set up webserver. Repository contains one, but u can also write your own since it really easy
+2. Build client. To build one you need to provide server ip-address and port, default one is 4040
+
+``` 
+python3 server.py
+cargo b <ip> <port>
+```
+
+### License
+
+This project is licensed under the MIT License. See the LICENSE file for more details.
+
+Contributions
+Contributions are welcome! Please feel free to fork the repository and submit pull requests.
