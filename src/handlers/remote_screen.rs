@@ -9,6 +9,7 @@ use scrap::{Capturer, Display};
 use tungstenite::Message;
 use tungstenite::protocol::WebSocket;
 use tungstenite::stream::MaybeTlsStream;
+use crate::Connection;
 
 lazy_static! {
     static ref STREAM_STATE: Arc<Mutex<StreamState>> = Arc::new(Mutex::new(StreamState::new()));
@@ -25,6 +26,7 @@ impl StreamState {
 pub fn handle_remote_screen(
 	payload: &[u8],
 	socket: &mut WebSocket<MaybeTlsStream<TcpStream>>,
+	connection: &Connection
 ) -> Result<(), Box<dyn Error>> {
 	update_streaming_state(payload)?;
 
