@@ -42,7 +42,7 @@ fn start_streaming_old(socket: &mut Socket) {
 	co_init();
 	
 	let adapter = AdapterFactory::new().get_adapter_by_idx(0).unwrap();
-	let output = adapter.get_display_by_idx(1).unwrap();
+	let output = adapter.get_display_by_idx(0).unwrap();
 
 	let mut dupl = DesktopDuplicationApi::new(adapter, output.clone()).unwrap();
 
