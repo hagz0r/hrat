@@ -1,83 +1,64 @@
-use std::error::Error;
-use std::net::TcpStream;
-use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
-
-use lazy_static::lazy_static;
 use scrap::{Capturer, Display};
-use tungstenite::Message;
-use tungstenite::protocol::WebSocket;
-use tungstenite::stream::MaybeTlsStream;
-use crate::Connection;
+use tungstenite::{connect, Message};
+use win_desktop_duplication::*;
+use win_desktop_duplication::{devices::*, tex_reader::*};
 
-lazy_static! {
-    static ref STREAM_STATE: Arc<Mutex<StreamState>> = Arc::new(Mutex::new(StreamState::new()));
-}
-pub struct StreamState {
-	is_streaming: bool,
-}
+use crate::{Connection, Socket};
 
-impl StreamState {
-	fn new() -> Self {
-		Self { is_streaming: false }
-	}
-}
 pub fn handle_remote_screen(
-	payload: &[u8],
-	socket: &mut WebSocket<MaybeTlsStream<TcpStream>>,
+	_payload: &[u8],
 	connection: &Connection
-) -> Result<(), Box<dyn Error>> {
-	update_streaming_state(payload)?;
+) {
+	let url = format!("ws://{}:4042", connection.ip);
+	let (mut socket, _response) = connect(&url).unwrap();
+	println!("Socket connected");
 
-	if STREAM_STATE.lock().unwrap().is_streaming {
-		let display = Display::primary()?;
-		let mut capturer = Capturer::new(display)?;
+	std::thread::spawn(move || {
+		start_streaming_new(&mut socket);
+		// start_streaming_old(&mut socket)	;
+	});
+}
 
-		loop {
-			{
-				let state = STREAM_STATE.lock().unwrap();
-				if !state.is_streaming {
-					break;
-				}
-			}
-			capture_frame(&mut capturer, socket)?;
+
+fn start_streaming_new(socket: &mut Socket) {
+	let display = Display::primary().unwrap();
+	let mut capturer = Capturer::new(display).unwrap();
+	loop {
+		match capturer.frame() {
+			Ok(frame) => {
+				socket.send(Message::Binary(frame.to_vec())).unwrap();
+			},
+			Err(error) => if error.kind() == std::io::ErrorKind::WouldBlock {
+				std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60)); 
+				continue;
+			},
 		}
 	}
-
-	Ok(())
 }
 
 
-fn update_streaming_state(payload: &[u8]) -> Result<(), Box<dyn Error>> {
-	if payload.is_empty() {
-		return Err("Payload is empty".into());
-	}
+fn start_streaming_old(socket: &mut Socket) {
+	set_process_dpi_awareness();
+	co_init();
+	
+	let adapter = AdapterFactory::new().get_adapter_by_idx(0).unwrap();
+	let output = adapter.get_display_by_idx(1).unwrap();
 
-	let mut state = STREAM_STATE.lock().unwrap();
-	state.is_streaming = match payload[0] as char {
-		'1'  => true,   
-		'0'  => false,  
-		_ => return Err("Invalid byte".into()),  
-	};
+	let mut dupl = DesktopDuplicationApi::new(adapter, output.clone()).unwrap();
 
-	Ok(())
-}
+	let (device, ctx) = dupl.get_device_and_ctx();
+	let mut texture_reader = TextureReader::new(device, ctx);
 
-fn capture_frame(capturer: &mut Capturer, socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) -> Result<(), Box<dyn Error>> {
-	let frame = match capturer.frame() {
-		Ok(frame) => frame,
-		Err(error) => {
-			return if error.kind() == std::io::ErrorKind::WouldBlock {
-				thread::sleep(Duration::new(0, 1_000_000_000u32 / 60)); // 60 FPS
-				Ok(())  
-			} else {
-				Err(Box::new(error))
-			}
+
+	let mut pic_data = vec![0; 0];
+	loop {
+		// output.wait_for_vsync().unwrap();
+		let tex = dupl.acquire_next_frame_now();
+
+		if let Ok(tex) = tex {
+			texture_reader.get_data(&mut pic_data, &tex).unwrap();
+			// std::mem::take so we don't cringe clone
+			socket.send(Message::binary(std::mem::take(&mut pic_data))).unwrap();
 		}
-	};
-
-	socket.write(Message::Binary(frame.to_vec()))?;
-	Ok(())
+	}
 }
-

