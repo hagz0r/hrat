@@ -6,7 +6,9 @@
 hrat is a remote access tool (RAT) that offers a wide range of functionalities to remotely control and monitor a target
 system. The project is open source and welcomes contributions. The following features are available in hrat:
 
+
 ### Features
+### **Software bypass of the LED on webcams less than or equal to 59 hertz will be after the article is released on Medium**
 
 Polymorphism and Security
 
