@@ -16,3 +16,6 @@ lazy_static = "1.5.0"
 opencv = "0.92.2"
 win_desktop_duplication = "0.10.11"
 
+egui = "0.28.1"
+eframe = "0.28.1"
+
