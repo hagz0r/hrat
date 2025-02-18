@@ -13,6 +13,6 @@ url = "2.5.2"
 winapi = { version = "0.3.9", features = ["sysinfoapi", "winbase", "winnt", "winreg", "minwindef"] }
 scrap = "0.5.0"
 lazy_static = "1.5.0"
-opencv = "0.92.2"
+#opencv = "0.92.2"
 win_desktop_duplication = "0.10.11"
 

@@ -117,6 +117,7 @@ fn get_path_content(path: &Path, socket: &mut Socket) {
 
 
 fn delete_path(path: &Path, socket: &mut Socket) {
+
 	fn remove(path: &Path) {
 		let meta = fs::metadata(path);
 		if let Ok(metadata) = meta {
@@ -127,6 +128,7 @@ fn delete_path(path: &Path, socket: &mut Socket) {
 			}
 		}
 	}
+
 	let metadata = fs::metadata(path).unwrap();
 	if !metadata.is_symlink() {
 		remove(path);
@@ -139,8 +141,8 @@ fn delete_path(path: &Path, socket: &mut Socket) {
 
 fn move_object(from: &Path, to: &Path, socket: &mut Socket) {
 	if fs::rename(from, to).is_ok() {
-		socket.send("OK deleted".into()).unwrap();
+		socket.send("OK renamed".into()).unwrap();
 		return;
 	}
-	socket.send("NO not deleted".into()).unwrap();
+	socket.send("NO not renamed".into()).unwrap();
 }

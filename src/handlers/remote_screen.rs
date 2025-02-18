@@ -4,6 +4,8 @@ use win_desktop_duplication::*;
 use win_desktop_duplication::{devices::*, tex_reader::*};
 
 use crate::{Connection, Socket};
+// creates new ws on port 4042 
+// and runs screencast on diff thread 
 
 pub fn handle_remote_screen(
 	_payload: &[u8],
@@ -36,7 +38,7 @@ fn start_streaming_new(socket: &mut Socket) {
 	}
 }
 
-
+/*
 fn start_streaming_old(socket: &mut Socket) {
 	set_process_dpi_awareness();
 	co_init();
@@ -62,3 +64,5 @@ fn start_streaming_old(socket: &mut Socket) {
 		}
 	}
 }
+
+ */

