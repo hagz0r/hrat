@@ -17,7 +17,7 @@ system. The project is open source and welcomes contributions. The following fea
 
 Web Interface
 
-![Interface Preview](https://i.ibb.co/4ZKzHPqR/Image.png)
+![Interface Preview](https://i.ibb.co/ksfnwHJr/image.png)
 
 Polymorphism and Security
 
