@@ -1,4 +1,4 @@
-pub fn handle_audio(payload: &[u8]) {
-	// Handle audio functionality
+struct Audio;
+impl Function for Audio {
+    fn handler() -> anyhow::Result<()> {}
 }
-
