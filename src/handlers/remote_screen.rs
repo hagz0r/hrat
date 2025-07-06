@@ -3,17 +3,22 @@ use tungstenite::{connect, Message};
 use win_desktop_duplication::*;
 use win_desktop_duplication::{devices::*, tex_reader::*};
 
-use crate::{Connection, Socket};
+use crate::handlers::func::Function;
+use crate::Socket;
 
-pub fn handle_remote_screen(_payload: &[u8], connection: &Connection) {
-    let url = format!("ws://{}:4042", connection.ip);
-    let (mut socket, _response) = connect(&url).unwrap();
-    println!("Socket connected");
+pub struct RemoteScreen;
 
-    std::thread::spawn(move || {
-        start_streaming_new(&mut socket);
-        // start_streaming_old(&mut socket)	;
-    });
+impl Function for RemoteScreen {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        let url = format!("ws://{}:4042", ctx.conn.ip);
+        let (mut socket, _response) = connect(&url).unwrap();
+        println!("Socket connected");
+
+        std::thread::spawn(move || {
+            start_streaming_new(&mut socket);
+        });
+        Ok(())
+    }
 }
 
 fn start_streaming_new(socket: &mut Socket) {

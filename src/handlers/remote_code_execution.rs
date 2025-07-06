@@ -1,3 +1,8 @@
-pub fn handle_remote_code_execution(payload: &[u8]) {
-    // Handle remote code execution functionality
+use crate::handlers::func::Function;
+
+pub struct RemoteCodeExecution;
+impl Function for RemoteCodeExecution {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
 }

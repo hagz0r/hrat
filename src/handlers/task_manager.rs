@@ -1,3 +1,8 @@
-pub fn handle_task_manager(payload: &[u8]) {
-    // Handle task manager functionality
+use crate::handlers::func::Function;
+
+pub struct TaskManager;
+impl Function for TaskManager {
+    fn handler(payload: &[u8], ctx: &mut super::func::Context) -> anyhow::Result<()> {
+        todo!()
+    }
 }

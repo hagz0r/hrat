@@ -7,7 +7,7 @@ use std::str::FromStr;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{connect, WebSocket};
 
-use crate::router::{handle_message, MessageType};
+use crate::router::handle_message;
 use crate::utils::SystemInformation;
 
 mod handlers;
@@ -51,15 +51,13 @@ fn connect_with_host(connection: Connection) {
     }
 }
 
-fn read_messages(socket: &mut Socket, connection: Connection) {
+fn read_messages(socket: &mut Socket, connection: Connection) -> anyhow::Result<()> {
     loop {
         let msg = socket.read();
         if let Ok(msg) = msg {
             let text = msg.into_text().unwrap();
             let bytes = text.as_bytes();
-            let message_type =
-                MessageType::from_char(bytes[0] as char).expect("Invalid message type");
-            handle_message(message_type, &bytes[1..], socket, &connection);
+            _ = handle_message(bytes, socket, &connection);
         }
     }
 }

