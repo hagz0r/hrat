@@ -3,7 +3,13 @@ name = "client"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[profile.release]
+strip = true      #deletes debuginfo
+lto = true        # can change code structure, usable for anti-AV
+codegen-units = 1 # more aggressive optimizations
+panic = "abort"   #no info when panicking
+
 
 [dependencies]
 tungstenite = "0.23.0"

@@ -46,6 +46,8 @@ fn connect_with_host(connection: Connection) {
             read_messages(&mut socket, connection.clone())
         }));
         if res.is_err() {
+            eprintln!("A panic was caught. Restarting the read loop.");
+            std::thread::sleep(std::time::Duration::from_secs(1));
             continue;
         }
     }

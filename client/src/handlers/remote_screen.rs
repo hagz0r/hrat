@@ -1,7 +1,5 @@
 use scrap::{Capturer, Display};
 use tungstenite::{connect, Message};
-use win_desktop_duplication::*;
-use win_desktop_duplication::{devices::*, tex_reader::*};
 
 use crate::handlers::func::Function;
 use crate::Socket;
@@ -35,33 +33,6 @@ fn start_streaming_new(socket: &mut Socket) {
                     continue;
                 }
             }
-        }
-    }
-}
-
-fn start_streaming_old(socket: &mut Socket) {
-    set_process_dpi_awareness();
-    co_init();
-
-    let adapter = AdapterFactory::new().get_adapter_by_idx(0).unwrap();
-    let output = adapter.get_display_by_idx(0).unwrap();
-
-    let mut dupl = DesktopDuplicationApi::new(adapter, output.clone()).unwrap();
-
-    let (device, ctx) = dupl.get_device_and_ctx();
-    let mut texture_reader = TextureReader::new(device, ctx);
-
-    let mut pic_data = vec![0; 0];
-    loop {
-        // output.wait_for_vsync().unwrap();
-        let tex = dupl.acquire_next_frame_now();
-
-        if let Ok(tex) = tex {
-            texture_reader.get_data(&mut pic_data, &tex).unwrap();
-            // std::mem::take so we don't cringe clone
-            socket
-                .send(Message::binary(std::mem::take(&mut pic_data)))
-                .unwrap();
         }
     }
 }

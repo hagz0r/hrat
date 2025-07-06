@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <title>hrat C&C</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    </head>
+    <body class="bg-gray-900 text-white font-sans">
+        <div class="container mx-auto p-8">
+            <h1 class="text-4xl font-bold mb-6 text-blue-400">hrat C&C</h1>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl">Connected Clients</h2>
+                    <button
+                        class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition"
+                    >
+                        Broadcast Command
+                    </button>
+                </div>
+
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-600">
+                            <th class="p-2">IP Address</th>
+                            <th class="p-2">Operating System</th>
+                            <th class="p-2">Status</th>
+                            <!-- Просто текстовый заголовок -->
+                            <th class="p-2 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ip, info in clients.items() %}
+                        <tr
+                            class="border-b border-gray-700 hover:bg-gray-700/50"
+                        >
+                            <td class="p-2 font-mono">{{ ip }}</td>
+                            <td class="p-2">{{ info.os }}</td>
+                            <td class="p-2">
+                                <span
+                                    class="px-2 py-1 text-xs rounded-full {{ 'bg-green-500 text-green-900' if info.status == 'Online' else 'bg-red-500 text-red-900' }}"
+                                >
+                                    {{ info.status }}
+                                </span>
+                            </td>
+                            <td class="p-2 text-center">
+                                <!-- Эта кнопка находится внутри цикла и теперь должна работать -->
+                                <button
+                                    hx-get="/controls/{{ ip }}"
+                                    hx-target="#control-panel"
+                                    hx-swap="innerHTML"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition"
+                                >
+                                    Control
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Место для вставки панели управления -->
+            <div id="control-panel" class="mt-8">
+                <!-- Начальное сообщение -->
+                <div class="text-center text-gray-500 p-8">
+                    <p>
+                        Select a client from the list above to start
+                        controlling.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

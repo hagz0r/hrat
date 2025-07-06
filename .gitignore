@@ -1,5 +1,6 @@
 Cargo.lock
-/target
-/venv
-/.idea
+__pycache__
+target
+venv
+.idea
 bundle.*

@@ -53,9 +53,7 @@ impl Function for FileSystem {
             '3' => delete_path(path, ctx.socket),
             '4' => move_object(path, Path::new(&paths[1]), ctx.socket),
             '5' => download_object(path, ctx.socket),
-            _ => {
-                panic!("Invalid FS operation");
-            }
+            _ => {}
         };
 
         Ok(())

