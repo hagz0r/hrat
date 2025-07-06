@@ -15,6 +15,15 @@
                     <h2 class="text-2xl">Connected Clients</h2>
                     <button
                         class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition"
+                        hx-get="/builder/"
+                        hx-target="#builder-panel"
+                        hx-swap="innerHTML"
+                    >
+                        Build Client
+                    </button>
+
+                    <button
+                        class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition"
                     >
                         Broadcast Command
                     </button>
@@ -26,7 +35,6 @@
                             <th class="p-2">IP Address</th>
                             <th class="p-2">Operating System</th>
                             <th class="p-2">Status</th>
-                            <!-- Просто текстовый заголовок -->
                             <th class="p-2 text-center">Action</th>
                         </tr>
                     </thead>
@@ -45,7 +53,6 @@
                                 </span>
                             </td>
                             <td class="p-2 text-center">
-                                <!-- Эта кнопка находится внутри цикла и теперь должна работать -->
                                 <button
                                     hx-get="/controls/{{ ip }}"
                                     hx-target="#control-panel"
@@ -61,14 +68,18 @@
                 </table>
             </div>
 
-            <!-- Место для вставки панели управления -->
             <div id="control-panel" class="mt-8">
-                <!-- Начальное сообщение -->
                 <div class="text-center text-gray-500 p-8">
                     <p>
                         Select a client from the list above to start
                         controlling.
                     </p>
+                </div>
+            </div>
+
+            <div id="builder-panel" class="mt-8">
+                <div class="text-center text-gray-500 p-8">
+                    <p>You can build client here using `Build Client` button</p>
                 </div>
             </div>
         </div>

