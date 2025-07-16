@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from connection_manager import manager
-from fastapi import HTTPException
-import asyncio
 import os
 import json
 
@@ -19,62 +17,49 @@ async def get_main_page(request: Request):
     clients_data = {cid: conn["info"] for cid, conn in manager.active_connections.items()}
     return templates.TemplateResponse("index.html", {"request": request, "clients": clients_data})
 
-@router.get("/controls/{client_ip}", response_class=HTMLResponse, tags=["UI"])
-async def get_client_controls(request: Request, client_ip: str):
-    if client_ip not in manager.active_connections:
+
+@router.get("/controls/{client_id}", response_class=HTMLResponse, tags=["UI"])
+async def get_client_controls(request: Request, client_id: str):
+    if client_id not in manager.active_connections:
         return HTMLResponse("<div class='text-red-500'>Client not found or disconnected</div>")
-    return templates.TemplateResponse("controls.html", {"request": request, "ip": client_ip})
+    return templates.TemplateResponse("controls.html", {"request": request, "ip": client_id})
 
 
-@router.post("/command/run/{client_id}", response_class=HTMLResponse)
-async def run_command(request: Request, client_id: str, command: str = Form(...)):
+@router.post("/api/command/{client_id}", response_class=HTMLResponse)
+async def handle_api_command(request: Request, client_id: str):
+    """
+    Эта функция теперь принимает данные формы, а не JSON, и отправляет команду клиенту.
+    """
     if client_id not in manager.active_connections:
         raise HTTPException(status_code=404, detail="Client not found")
 
-    shell = "bash"
-
-    payload = {
-        "module": "RSH",
-        "args": {
-            "command": command,
-            "shell": shell
-        }
-    }
-
-    # Отправляем JSON как строку
-    await manager.send_personal_message(json.dumps(payload), client_id)
-
-    websocket = manager.active_connections[client_id]["websocket"]
     try:
-        # Ожидаем текстовый ответ от клиента
-        response_data = await asyncio.wait_for(websocket.receive_text(), timeout=15.0)
-        return HTMLResponse(f"<pre class='whitespace-pre-wrap text-gray-300'>{response_data}</pre>")
-    except asyncio.TimeoutError:
-        return HTMLResponse("<div class='text-red-500'>Error: Timed out waiting for response from client.</div>")
-    except Exception as e:
-        return HTMLResponse(f"<div class='text-red-500'>Error receiving response: {e}</div>")
+        # --- ИЗМЕНЕНИЕ: Читаем данные из формы вместо JSON ---
+        form_data = await request.form()
 
-@router.post("/fs/list/{client_id}", response_class=HTMLResponse)
-async def list_directory(request: Request, client_id: str, path: str = Form(...)):
-    if client_id not in manager.active_connections:
-        raise HTTPException(status_code=404, detail="Client not found")
-
-    # Формируем JSON для листинга директории
-    # Примечание: В `file_system.rs` используется "GET", а не "list", как в документации. Используем то, что в коде.
-    payload = {
-        "module": "FS",
-        "args": {
-            "operation": "GET",
-            "path": path
+        # --- ИЗМЕНЕНИЕ: Вручную собираем полезную нагрузку ---
+        command_payload = {
+            "module": form_data.get("module"),
+            "args": {}
         }
-    }
-    await manager.send_personal_message(json.dumps(payload), client_id)
+        for key, value in form_data.items():
+            if key.startswith("args."):
+                # Преобразуем 'args.command' в 'command'
+                arg_key = key.split(".", 1)[1]
+                command_payload["args"][arg_key] = value
 
-    websocket = manager.active_connections[client_id]["websocket"]
-    try:
-        response_data = await asyncio.wait_for(websocket.receive_text(), timeout=15.0)
-        return HTMLResponse(f"<pre class='whitespace-pre-wrap text-gray-300'>{response_data}</pre>")
-    except asyncio.TimeoutError:
-        return HTMLResponse("<div class='text-red-500'>Error: Timed out waiting for response from client.</div>")
+        command_str = json.dumps(command_payload)
+        # --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
+        print(f"[HTTP Handler] Prepared command for {client_id}: {command_str}") # Добавим лог
+
+        success = await manager.send_personal_message(command_str, client_id)
+
+        if success:
+            return HTMLResponse(f"<p class='text-green-400'>Command sent to {command_payload['module']} module. Check server console.</p>")
+        else:
+            return HTMLResponse("<p class='text-red-500'>Failed to send command: client not found.</p>")
+
     except Exception as e:
-        return HTMLResponse(f"<div class='text-red-500'>Error receiving response: {e}</div>")
+        print(f"[HTTP Handler] An error occurred: {e}")
+        return HTMLResponse(f"<div class='text-red-500'>An error occurred: {e}</div>")
