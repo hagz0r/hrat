@@ -16,6 +16,7 @@
         ps.uvicorn
         ps.jinja2
         ps.python-multipart
+	ps.websockets
       ]);
 
     in

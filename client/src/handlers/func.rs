@@ -1,17 +1,9 @@
-use crate::{Connection, Socket};
-pub struct Context<'a> {
-    pub socket: &'a mut Socket,
-    pub conn: &'a Connection,
-}
+use crate::router::SocketWriter;
+use async_trait::async_trait;
 
-impl<'a> Context<'a> {
-    pub fn from(socket: &'a mut Socket, conn: &'a Connection) -> Self {
-        Self { socket, conn }
-    }
-}
+pub type HandlerResult = anyhow::Result<()>;
 
-pub type HandlerFn = fn(payload: &[u8], ctx: &mut Context) -> anyhow::Result<()>;
-
+#[async_trait]
 pub trait Function {
-    fn handler(payload: &[u8], ctx: &mut Context) -> anyhow::Result<()>;
+    async fn handler<'a>(args: serde_json::Value, socket: &'a mut SocketWriter) -> HandlerResult;
 }

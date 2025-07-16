@@ -10,9 +10,11 @@ lto = true        # can change code structure, usable for anti-AV
 codegen-units = 1 # more aggressive optimizations
 panic = "abort"   #no info when panicking
 
+[features]
+default = ["dev-logs"]
+dev-logs = []
 
 [dependencies]
-tungstenite = "0.23.0"
 tokio = { version = "1.39.1", features = ["full"] }
 sysinfo = "0.31.2"
 url = "2.5.2"
@@ -28,3 +30,12 @@ lazy_static = "1.5.0"
 # opencv = "0.92.2"
 win_desktop_duplication = "0.10.11"
 anyhow = "1.0.98"
+# serde = { version = "1.0.219" }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+tokio-tungstenite = { version = "0.23.0", features = [
+    "rustls-tls-native-roots",
+] }
+futures-util = { version = "0.3.30", features = ["sink"] }
+async-trait = "0.1.88"
+async-recursion = "1.1.1"

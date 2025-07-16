@@ -13,6 +13,32 @@ pub fn is_port_valid(port: &str) -> bool {
     (0..=65535).contains(&port.parse::<i32>().unwrap())
 }
 
+#[macro_export]
+macro_rules! dev_print {
+    ($($arg:tt)*) => {
+        #[cfg(feature = "dev-logs")]
+        println!($($arg)*);
+    }
+}
+#[macro_export]
+macro_rules! dev_eprint {
+    ($($arg:tt)*) => {
+        #[cfg(feature = "dev-logs")]
+        eprintln!($($arg)*);
+    }
+}
+
+#[derive(Clone)]
+pub struct Connection {
+    pub ip: String,
+    pub port: i32,
+}
+impl Connection {
+    pub fn from(ip: String, port: i32) -> Self {
+        Self { ip, port }
+    }
+}
+
 pub struct SystemInformation {
     host_name: String,
     os_version: String,
