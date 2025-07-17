@@ -15,6 +15,7 @@ default = ["dev-logs"]
 dev-logs = []
 
 [dependencies]
+nokhwa = { version = "0.10.9", features = ["input-native", "output-wgpu"] }
 tokio = { version = "1.39.1", features = ["full"] }
 sysinfo = "0.31.2"
 url = "2.5.2"
@@ -27,10 +28,8 @@ winapi = { version = "0.3.9", features = [
 ] }
 scrap = "0.5.0"
 lazy_static = "1.5.0"
-# opencv = "0.92.2"
 win_desktop_duplication = "0.10.11"
 anyhow = "1.0.98"
-# serde = { version = "1.0.219" }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 tokio-tungstenite = { version = "0.23.0", features = [

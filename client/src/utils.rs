@@ -39,7 +39,7 @@ impl Connection {
     }
 }
 
-pub struct SystemInformation {
+pub struct TargetInformation {
     host_name: String,
     os_version: String,
     long_os_version: String,
@@ -47,14 +47,15 @@ pub struct SystemInformation {
     cpu_model: String,
     gpu_models: Vec<String>,
     memory_total: u64,
+    // geo_data: Option<String>,
 }
 
-impl SystemInformation {
-    pub fn get() -> SystemInformation {
+impl TargetInformation {
+    pub fn get() -> TargetInformation {
         let mut sys = System::new_all();
         sys.refresh_all();
 
-        SystemInformation {
+        TargetInformation {
             host_name: System::host_name().unwrap_or("Unknown".into()),
             os_version: System::os_version().unwrap_or("Unknown".into()),
             long_os_version: System::long_os_version().unwrap_or("Unknown".into()),
@@ -62,6 +63,7 @@ impl SystemInformation {
             cpu_model: sys.cpus()[0].brand().to_string().trim().to_string(),
             gpu_models: get_gpu_models(),
             memory_total: sys.total_memory(),
+            // geo_data: get_ip_location(),
         }
     }
 
@@ -96,3 +98,17 @@ fn get_gpu_models() -> Vec<String> {
         vec!["Unknown".to_string()]
     }
 }
+
+// fn get_ip_location() -> Option<String> {
+//     let client = reqwest::blocking::Client::new();
+//     let response = client.get("http://ip-api.com/json").send();
+
+//     if let Ok(resp) = response {
+//         if let Ok(location) = resp.json::<IpApiLocation>() {
+//             let lat = location.lat.unwrap_or(0.0);
+//             let lon = location.lon.unwrap_or(0.0);
+//             return Some(format!("{}, {}", lat, lon));
+//         }
+//     }
+//     None
+// }

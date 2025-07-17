@@ -2,18 +2,19 @@ use std::path::{Path, PathBuf};
 
 use async_recursion::async_recursion;
 use async_trait::async_trait;
-use futures_util::SinkExt;
 use tokio::fs;
 use tokio_tungstenite::tungstenite::Message;
 
-use crate::handlers::func::{Function, HandlerResult};
-use crate::router::SocketWriter;
+use crate::actors::{Actor, Command, HandlerResult, WsMessageSender};
 
 pub struct FileSystem;
 
 #[async_trait]
-impl Function for FileSystem {
-    async fn handler(args: serde_json::Value, socket: &mut SocketWriter) -> HandlerResult {
+impl Actor for FileSystem {
+    fn new() -> Self {
+        Self
+    }
+    async fn handler(&mut self, args: Command, socket: WsMessageSender) -> HandlerResult {
         let operation = args["operation"]
             .as_str()
             .ok_or_else(|| anyhow::anyhow!("'operation' field must be a string"))?;
@@ -43,7 +44,7 @@ impl Function for FileSystem {
 }
 
 #[async_recursion]
-async fn download_object(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Result<()> {
+async fn download_object(path: &Path, socket: WsMessageSender) -> anyhow::Result<()> {
     let metadata = fs::metadata(path).await?;
 
     if metadata.is_file() {
@@ -62,7 +63,7 @@ async fn download_object(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::
     } else if metadata.is_dir() {
         let mut entries = fs::read_dir(path).await?;
         while let Some(entry) = entries.next_entry().await? {
-            if let Err(e) = download_object(&entry.path(), socket).await {
+            if let Err(e) = download_object(&entry.path(), socket.clone()).await {
                 let error_message = format!("Failed to process {}: {}", entry.path().display(), e);
                 socket.send(Message::Text(error_message)).await?;
             }
@@ -71,7 +72,7 @@ async fn download_object(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::
     Ok(())
 }
 
-async fn run_file(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Result<()> {
+async fn run_file(path: &Path, socket: WsMessageSender) -> anyhow::Result<()> {
     match tokio::process::Command::new(path).spawn() {
         Ok(_) => {
             socket.send("OK runned".into()).await?;
@@ -85,7 +86,7 @@ async fn run_file(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Result<
     }
 }
 
-async fn get_path_content(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Result<()> {
+async fn get_path_content(path: &Path, socket: WsMessageSender) -> anyhow::Result<()> {
     let meta = fs::metadata(path).await?;
     if meta.is_file() {
         let contents = fs::read_to_string(path).await?;
@@ -110,7 +111,7 @@ async fn get_path_content(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow:
     Ok(())
 }
 
-async fn delete_path(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Result<()> {
+async fn delete_path(path: &Path, socket: WsMessageSender) -> anyhow::Result<()> {
     let meta = fs::metadata(path).await?;
     if meta.is_dir() {
         fs::remove_dir_all(path).await?;
@@ -123,7 +124,7 @@ async fn delete_path(path: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Resu
     Ok(())
 }
 
-async fn move_object(from: &Path, to: &Path, socket: &mut SocketWriter<'_>) -> anyhow::Result<()> {
+async fn move_object(from: &Path, to: &Path, socket: WsMessageSender) -> anyhow::Result<()> {
     match fs::rename(from, to).await {
         Ok(_) => {
             socket.send("OK moved".into()).await?;

