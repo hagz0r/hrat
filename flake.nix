@@ -1,68 +1,74 @@
 {
-  description = "Development environment for the hrat C&C web host";
+  description = "Dev shell for hrat host + client (PipeWire / SPA OK)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs =
-    { self, nixpkgs }:
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
+  outputs = { self, nixpkgs }:
+  let
+    system = "x86_64-linux";
+    pkgs   = nixpkgs.legacyPackages.${system};
 
-      pythonEnv = pkgs.python3.withPackages (ps: [
-        ps.fastapi
-        ps.uvicorn
-        ps.jinja2
-        ps.python-multipart
-        ps.websockets
-      ]);
+    includePkgs = [
+      pkgs.glibc.dev
+      pkgs.llvmPackages.clang.cc
+      pkgs.pipewire.dev
+      pkgs.linuxHeaders
+      pkgs.libv4l.dev
+    ];
 
-    in
-    {
-      devShells.${system}.default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          pythonEnv
+    baseInc = pkgs.lib.makeSearchPath "include" includePkgs;
+    spaInc  = "${pkgs.pipewire.dev}/include/spa-0.2";
+    devInc  = "${baseInc}:${spaInc}";
 
-          cargo
-          rustc
-          pkg-config
+    bindgenFlags = pkgs.lib.concatStringsSep " "
+      (map (p: "-I${p}/include") includePkgs ++ [ "-I${spaInc}" ]);
 
-          llvmPackages.libclang
-          linuxHeaders
-          
-          # We are referencing glibc.dev in the shellHook, so it is good 
-          # practice to make it an explicit input, even though it's
-          # part of the standard environment.
-          glibc.dev
+    devLib = pkgs.lib.makeLibraryPath [
+      pkgs.pipewire
+      pkgs.libv4l
+    ];
 
-          xorg.libX11
-          xorg.libxcb
-        ];
+    pythonEnv = pkgs.python3.withPackages (ps: [
+      ps.fastapi
+      ps.uvicorn
+      ps.jinja2
+      ps.python-multipart
+      ps.websockets
+    ]);
+  in
+  {
+    devShells.${system}.default = pkgs.mkShell {
+      buildInputs = with pkgs; [
+        cargo rustc gcc llvmPackages.clang llvmPackages.libclang pkg-config
+        glibc.dev linuxHeaders libv4l.dev pipewire alsa-lib udev
+        xorg.libX11 xorg.libxcb dbus
+        pythonEnv
+      ];
 
-        shellHook = ''
-          export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
+      C_INCLUDE_PATH     = devInc;
+      CPLUS_INCLUDE_PATH = devInc;
+      LIBRARY_PATH       = devLib;
+      LD_LIBRARY_PATH    = devLib;
 
-          # Add include paths for BOTH the Linux headers and the C Standard Library
-          export BINDGEN_EXTRA_CLANG_ARGS="-I${pkgs.linuxHeaders}/include -I${pkgs.glibc.dev}/include"
+      shellHook = ''
+        # bindgen
+        export BINDGEN_EXTRA_CLANG_ARGS="${bindgenFlags}"
+        export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
 
-          echo ""
-          echo "--- hrat C&C Host Environment Activated ---"
-          echo ""
-          echo "Python with FastAPI is now available."
-          echo "Rust toolchain and build dependencies are also available."
-          echo ""
-          echo "To run the web server:"
-          echo "  uvicorn main:app --reload"
-          echo ""
-          echo "To build the client manually (for testing):"
-          echo "  cd ../client && cargo build"
-          echo ""
+        echo
+        echo "--- hrat dev shell ready ---"
+        echo
+	echo "cd client/ && RAT_HOST_IP=127.0.0.1 RAT_HOST_PORT=8080 cargo run --release"
+        echo "cd host/ && uvicorn main:app --reload"
+        echo
 
-          zeditor host
-	  zeditor client
-        '';
-      };
+
+        zeditor host 
+	zeditor client
+      '';
     };
+  };
 }
+

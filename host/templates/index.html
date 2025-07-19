@@ -19,8 +19,8 @@
                     sans-serif;
                 background: linear-gradient(
                     135deg,
-                    rgb(18, 18, 18) 0%,
-                    rgb(24, 24, 24) 100%
+                    rgb(28, 28, 28) 0%,
+                    rgb(64, 64, 64) 100%
                 );
                 min-height: 100vh;
             }
@@ -176,6 +176,11 @@
                                 <th
                                     class="text-left p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
                                 >
+                                    IP Address
+                                </th>
+                                <th
+                                    class="text-left p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
+                                >
                                     Hostname
                                 </th>
                                 <th
@@ -204,6 +209,9 @@
                                     >
                                         {{ ip }}
                                     </code>
+                                </td>
+                                <td class="p-4 font-mono text-gray-300">
+                                    {{ info.ip_address or 'N/A' }}
                                 </td>
                                 <td class="p-4">
                                     <div class="font-medium text-white">
@@ -256,7 +264,7 @@
                             </tr>
                             {% endfor %} {% if not clients %}
                             <tr>
-                                <td colspan="5" class="p-12 text-center">
+                                <td colspan="6" class="p-12 text-center">
                                     <div class="text-gray-500">
                                         <svg
                                             class="w-16 h-16 mx-auto mb-4 opacity-50"

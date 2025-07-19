@@ -7,15 +7,18 @@ class ConnectionManager:
         self.active_connections: Dict[str, Dict[str, Any]] = {}
 
     async def connect(self, websocket: WebSocket, client_id: str):
-        await websocket.accept()
-        self.active_connections[client_id] = {
-            "websocket": websocket,
-            "info": {},
-            "queue": asyncio.Queue(),
-            "results_queue" : asyncio.Queue(),
-            "feed_viewers": set()
-        }
-        print(f"New client: {client_id}")
+            await websocket.accept()
+            self.active_connections[client_id] = {
+                "websocket": websocket,
+                "info": {
+                    "ip_address": websocket.client.host if websocket.client else "unknown",
+                    "status" : "connecting..."
+                },
+                "queue": asyncio.Queue(),
+                "results_queue" : asyncio.Queue(),
+                "feed_viewers": set()
+            }
+            print(f"New client: {client_id}")
 
     def disconnect(self, client_id: str):
         if client_id in self.active_connections:
@@ -26,11 +29,11 @@ class ConnectionManager:
         if client_id in self.active_connections:
             try:
                 parts = [p.strip() for p in info_str.split(',')]
-                self.active_connections[client_id]["info"] = {
+                self.active_connections[client_id]["info"].update({
                     "host_name": parts[0],
                     "os": f"{parts[1]} ({parts[2]})",
                     "status": "Online"
-                }
+                })
                 print(f"Got info from {client_id}: {self.active_connections[client_id]['info']}")
             except IndexError:
                 print(f"Sysinfo parsing error for {client_id}: {info_str}")
