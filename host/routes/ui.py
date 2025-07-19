@@ -54,71 +54,8 @@ async def handle_api_command(request: Request, client_id: str):
         if not success:
             return HTMLResponse("<p class='text-red-500'>Failed to queue command: client not found.</p>")
 
-
-
-        if module_name == "WC" and command_payload.get("args", {}).get("mode") == "photo":
-            await asyncio.sleep(1)
-            return await get_webcam_image_element(client_id)
-
         return HTMLResponse(f"<p class='text-green-400'>Command for '{module_name}' sent.</p>")
+
     except Exception as e:
         print(f"[HTTP Handler] An error occurred: {e}")
         return HTMLResponse(f"<div class='text-red-500'>An error occurred: {e}</div>")
-
-import glob
-@router.get("/api/webcam_feed/{client_id}")
-async def get_webcam_feed(client_id: str):
-    try:
-        search_pattern = os.path.join(UPLOADS_DIR, f"webcam_{client_id}_*.jpeg")
-
-        file_list = glob.glob(search_pattern)
-
-        if not file_list:
-            raise FileNotFoundError
-
-        latest_file = max(file_list, key=os.path.getctime)
-
-        return FileResponse(
-            latest_file,
-            media_type="image/jpeg",
-            headers={
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0"
-            }
-        )
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Webcam feed not available yet.")
-    except Exception as e:
-        print(f"Error finding latest webcam feed for {client_id}: {e}")
-        raise HTTPException(status_code=500, detail="Error processing webcam feed.")
-
-import time
-
-@router.get("/api/webcam_image_element/{client_id}", response_class=HTMLResponse)
-async def get_webcam_image_element(client_id: str):
-    try:
-        search_pattern = os.path.join(UPLOADS_DIR, f"webcam_{client_id}_*.jpeg")
-        file_list = glob.glob(search_pattern)
-        if not file_list:
-            raise FileNotFoundError
-
-        latest_file = max(file_list, key=os.path.getctime)
-
-        timestamp = int(time.time())
-        image_url = f"/api/webcam_feed/{client_id}?ts={timestamp}"
-
-        return f"""
-        <img id="webcam-output-{client_id}"
-             src="{image_url}"
-             alt="Webcam Feed"
-             class="max-w-full max-h-full rounded" />
-        """
-
-    except FileNotFoundError:
-        return f"""
-        <img id="webcam-output-{client_id}"
-             src="https://via.placeholder.com/640x480.png?text=No+Image+Yet"
-             alt="Webcam Feed"
-             class="max-w-full max-h-full rounded" />
-        """

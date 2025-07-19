@@ -4,7 +4,6 @@ import asyncio
 
 class ConnectionManager:
     def __init__(self):
-        # Структура: {"client_id": {"websocket": ws, "info": {...}, "queue": Queue()}}
         self.active_connections: Dict[str, Dict[str, Any]] = {}
 
     async def connect(self, websocket: WebSocket, client_id: str):
@@ -12,7 +11,8 @@ class ConnectionManager:
         self.active_connections[client_id] = {
             "websocket": websocket,
             "info": {},
-            "queue": asyncio.Queue() # <-- ДОБАВЛЕНО
+            "queue": asyncio.Queue(),
+            "feed_viewers": set()
         }
         print(f"New client: {client_id}")
 
@@ -44,5 +44,24 @@ class ConnectionManager:
         await q.put(message)
         print("send_personal_message: queued", message)
         return True
+
+
+
+    async def forward_video_frame(self, frame_data: bytes, client_id: str):
+        if client_id in self.active_connections:
+            viewers = self.active_connections[client_id].get("feed_viewers", set())
+            # Отправляем кадр всем, кто смотрит стрим
+            for viewer_ws in viewers:
+                await viewer_ws.send_bytes(frame_data)
+
+    def add_feed_viewer(self, websocket: WebSocket, client_id: str):
+        if client_id in self.active_connections:
+            self.active_connections[client_id]["feed_viewers"].add(websocket)
+            print(f"New viewer for {client_id}")
+
+    def remove_feed_viewer(self, websocket: WebSocket, client_id: str):
+        if client_id in self.active_connections:
+            self.active_connections[client_id]["feed_viewers"].discard(websocket)
+            print(f"Viewer for {client_id} disconnected")
 
 manager = ConnectionManager()
