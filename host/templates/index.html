@@ -1,85 +1,344 @@
 <!doctype html>
-<html lang="ru" class="dark">
+<html lang="en" class="dark">
     <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>hrat C&C</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: linear-gradient(
+                    135deg,
+                    rgb(18, 18, 18) 0%,
+                    rgb(24, 24, 24) 100%
+                );
+                min-height: 100vh;
+            }
+
+            .glass-effect {
+                background: rgba(32, 32, 32, 0.8);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .button-primary {
+                background: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
+                color: #1f2937;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                transition: all 0.2s ease;
+            }
+
+            .button-primary:hover {
+                background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .button-secondary {
+                background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+                color: white;
+                box-shadow: 0 4px 16px rgba(107, 114, 128, 0.3);
+                transition: all 0.2s ease;
+            }
+
+            .button-secondary:hover {
+                background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+                box-shadow: 0 6px 20px rgba(107, 114, 128, 0.4);
+                transform: translateY(-1px);
+            }
+
+            .table-row {
+                transition: all 0.2s ease;
+            }
+
+            .table-row:hover {
+                background: rgba(255, 255, 255, 0.03);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            .status-online {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+            }
+
+            .status-offline {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                color: white;
+                box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+            }
+
+            .client-id-badge {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: #e5e7eb;
+            }
+        </style>
     </head>
-    <body class="bg-gray-900 text-white font-sans">
-        <div class="container mx-auto p-8">
-            <h1 class="text-4xl font-bold mb-6 text-blue-400">hrat C&C</h1>
-
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl">Connected Clients</h2>
-                    <button
-                        class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition"
-                        hx-get="/builder/"
-                        hx-target="#builder-panel"
-                        hx-swap="innerHTML"
-                    >
-                        Build Client
-                    </button>
-
-                    <button
-                        class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded transition"
-                    >
-                        Broadcast Command
-                    </button>
-                </div>
-
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="border-b border-gray-600">
-                            <th class="p-2">IP Address</th>
-                            <th class="p-2">Operating System</th>
-                            <th class="p-2">Status</th>
-                            <th class="p-2 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ip, info in clients.items() %}
-                        <tr
-                            class="border-b border-gray-700 hover:bg-gray-700/50"
-                        >
-                            <td class="p-2 font-mono">{{ ip }}</td>
-                            <td class="p-2">{{ info.os }}</td>
-                            <td class="p-2">
-                                <span
-                                    class="px-2 py-1 text-xs rounded-full {{ 'bg-green-500 text-green-900' if info.status == 'Online' else 'bg-red-500 text-red-900' }}"
-                                >
-                                    {{ info.status }}
-                                </span>
-                            </td>
-                            <td class="p-2 text-center">
-                                <button
-                                    hx-get="/controls/{{ ip }}"
-                                    hx-target="#control-panel"
-                                    hx-swap="innerHTML"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition"
-                                >
-                                    Control
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <body class="text-white">
+        <div class="container mx-auto p-6 max-w-7xl">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1
+                    class="text-5xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                >
+                    hrat C&C
+                </h1>
+                <p class="text-lg text-gray-400 font-light">
+                    Command & Control Dashboard
+                </p>
             </div>
 
+            <!-- Main Panel -->
+            <div class="glass-effect rounded-2xl p-8 shadow-2xl">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-3xl font-semibold text-white mb-1">
+                            Connected Clients
+                        </h2>
+                        <p class="text-gray-400 font-light">
+                            {{ clients|length }} active connection{{ 's' if
+                            clients|length != 1 else '' }}
+                        </p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button
+                            class="button-primary font-medium py-3 px-6 rounded-xl transition-all duration-200"
+                            hx-get="/builder/"
+                            hx-target="#builder-panel"
+                            hx-swap="innerHTML"
+                        >
+                            <span class="flex items-center gap-2">
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    ></path>
+                                </svg>
+                                Build Client
+                            </span>
+                        </button>
+                        <button
+                            class="button-secondary font-medium py-3 px-6 rounded-xl transition-all duration-200"
+                        >
+                            <span class="flex items-center gap-2">
+                                <svg
+                                    class="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10l.94 2.06a2 2 0 01-.17 1.99l-1.5 2.3A2 2 0 0115.73 9H8.27a2 2 0 01-1.54-.65L5.23 6.05a2 2 0 01-.17-1.99L5.6 4H7z"
+                                    ></path>
+                                </svg>
+                                Broadcast
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clients Table -->
+                <div
+                    class="overflow-hidden rounded-xl bg-rgb(24, 24, 24) border border-gray-700/50"
+                >
+                    <table class="w-full">
+                        <thead>
+                            <tr
+                                class="bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-b border-gray-600/30"
+                            >
+                                <th
+                                    class="text-left p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
+                                >
+                                    Client ID
+                                </th>
+                                <th
+                                    class="text-left p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
+                                >
+                                    Hostname
+                                </th>
+                                <th
+                                    class="text-left p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
+                                >
+                                    Operating System
+                                </th>
+                                <th
+                                    class="text-left p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
+                                >
+                                    Status
+                                </th>
+                                <th
+                                    class="text-center p-4 font-semibold text-gray-300 text-sm uppercase tracking-wide"
+                                >
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700/30">
+                            {% for ip, info in clients.items() %}
+                            <tr class="table-row">
+                                <td class="p-4">
+                                    <code
+                                        class="client-id-badge px-3 py-1 rounded-lg font-mono text-sm"
+                                    >
+                                        {{ ip }}
+                                    </code>
+                                </td>
+                                <td class="p-4">
+                                    <div class="font-medium text-white">
+                                        {{ info.host_name or 'Unknown' }}
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-gray-300">
+                                        {{ info.os }}
+                                    </div>
+                                </td>
+                                <td class="p-4">
+                                    <span
+                                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
+                                        {{ 'status-online' if info.status == 'Online' else 'status-offline' }}"
+                                    >
+                                        <div
+                                            class="w-2 h-2 rounded-full mr-2 bg-white"
+                                        ></div>
+                                        {{ info.status }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <button
+                                        hx-get="/controls/{{ ip }}"
+                                        hx-target="#control-panel"
+                                        hx-swap="innerHTML"
+                                        class="button-primary font-medium py-2 px-4 rounded-lg transition-all duration-200 text-sm"
+                                    >
+                                        <span
+                                            class="flex items-center gap-2 justify-center"
+                                        >
+                                            <svg
+                                                class="w-4 h-4"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                                                ></path>
+                                            </svg>
+                                            Control
+                                        </span>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %} {% if not clients %}
+                            <tr>
+                                <td colspan="5" class="p-12 text-center">
+                                    <div class="text-gray-500">
+                                        <svg
+                                            class="w-16 h-16 mx-auto mb-4 opacity-50"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="1"
+                                                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                            ></path>
+                                        </svg>
+                                        <p class="text-xl font-medium mb-2">
+                                            No clients connected
+                                        </p>
+                                        <p class="text-sm">
+                                            Clients will appear here when they
+                                            connect to the server
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
             <div id="control-panel" class="mt-8">
-                <div class="text-center text-gray-500 p-8">
-                    <p>
-                        Select a client from the list above to start
-                        controlling.
+                <div
+                    class="glass-effect rounded-2xl p-12 text-center shadow-2xl"
+                >
+                    <svg
+                        class="w-20 h-20 mx-auto mb-6 text-gray-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        ></path>
+                    </svg>
+                    <h3 class="text-2xl font-semibold text-gray-300 mb-2">
+                        Ready to Control
+                    </h3>
+                    <p class="text-gray-500 text-lg">
+                        Select a client from the list above to start controlling
                     </p>
                 </div>
             </div>
 
+            <!-- Builder Panel -->
             <div id="builder-panel" class="mt-8">
-                <div class="text-center text-gray-500 p-8">
-                    <p>You can build client here using `Build Client` button</p>
+                <div
+                    class="glass-effect rounded-2xl p-12 text-center shadow-2xl"
+                >
+                    <svg
+                        class="w-20 h-20 mx-auto mb-6 text-gray-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="1"
+                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                        ></path>
+                    </svg>
+                    <h3 class="text-2xl font-semibold text-gray-300 mb-2">
+                        Client Builder
+                    </h3>
+                    <p class="text-gray-500 text-lg">
+                        Use the "Build Client" button above to create new
+                        clients
+                    </p>
                 </div>
             </div>
         </div>

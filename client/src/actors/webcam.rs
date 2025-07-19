@@ -130,7 +130,7 @@ impl Webcam {
                     }
                 }
 
-                std::thread::sleep(Duration::from_millis(1000 / 60));
+                // std::thread::sleep(Duration::from_millis(1000 / 60));
             }
 
             if let Err(e) = camera.stop_stream() {

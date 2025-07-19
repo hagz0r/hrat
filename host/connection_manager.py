@@ -12,6 +12,7 @@ class ConnectionManager:
             "websocket": websocket,
             "info": {},
             "queue": asyncio.Queue(),
+            "results_queue" : asyncio.Queue(),
             "feed_viewers": set()
         }
         print(f"New client: {client_id}")
@@ -50,7 +51,6 @@ class ConnectionManager:
     async def forward_video_frame(self, frame_data: bytes, client_id: str):
         if client_id in self.active_connections:
             viewers = self.active_connections[client_id].get("feed_viewers", set())
-            # Отправляем кадр всем, кто смотрит стрим
             for viewer_ws in viewers:
                 await viewer_ws.send_bytes(frame_data)
 

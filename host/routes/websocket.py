@@ -8,6 +8,7 @@ router = APIRouter()
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
     await manager.connect(websocket, client_id)
     cmd_queue = manager.active_connections[client_id]["queue"]
+    results_queue = manager.active_connections[client_id].get("results_queue")
 
     async def sender():
         while True:
@@ -26,6 +27,8 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
             message = await websocket.receive()
             if "text" in message:
                 print(f"\n--- Text from {client_id}: {message['text']} ---")
+                if results_queue:
+                    await results_queue.put(message['text'])
             elif "bytes" in message:
                 await manager.forward_video_frame(message["bytes"], client_id)
     except (WebSocketDisconnect, RuntimeError): pass

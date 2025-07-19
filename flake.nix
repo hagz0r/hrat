@@ -59,6 +59,9 @@
           echo "To build the client manually (for testing):"
           echo "  cd ../client && cargo build"
           echo ""
+
+          zeditor host
+	  zeditor client
         '';
       };
     };
