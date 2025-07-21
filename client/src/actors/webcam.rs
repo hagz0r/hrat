@@ -13,6 +13,8 @@ use crate::actors::{Actor, Command, HandlerResult, WsMessageSender};
 
 type StreamingState = Arc<Mutex<bool>>;
 
+const STREAM_PREFIX: u8 = 0x01; // <--- ДОБАВЛЕНО: Префикс для потока с вебкамеры
+
 pub struct Webcam {
     is_streaming: StreamingState,
 }
@@ -33,7 +35,10 @@ impl Actor for Webcam {
                 let should_compress = args["compressing"].as_bool().unwrap_or(true);
                 match Self::get_photo(should_compress).await {
                     Ok(image_data) => {
-                        writer.send(Message::Binary(image_data)).await?;
+                        // ИЗМЕНЕНО: Добавляем префикс к фото
+                        let mut prefixed_data = vec![STREAM_PREFIX];
+                        prefixed_data.extend(image_data);
+                        writer.send(Message::Binary(prefixed_data)).await?;
                         crate::dev_print!("Photo sent by webcam actor.");
                         Ok(())
                     }
@@ -120,7 +125,13 @@ impl Webcam {
 
                 match Self::capture_and_compress_frame_sync(&mut camera) {
                     Ok(jpeg_data) => {
-                        if writer.blocking_send(Message::Binary(jpeg_data)).is_err() {
+                        // ИЗМЕНЕНО: Добавляем префикс к каждому кадру
+                        let mut prefixed_frame = vec![STREAM_PREFIX];
+                        prefixed_frame.extend(jpeg_data);
+                        if writer
+                            .blocking_send(Message::Binary(prefixed_frame))
+                            .is_err()
+                        {
                             break;
                         }
                     }
@@ -129,8 +140,6 @@ impl Webcam {
                         std::thread::sleep(Duration::from_secs(1));
                     }
                 }
-
-                // std::thread::sleep(Duration::from_millis(1000 / 60));
             }
 
             if let Err(e) = camera.stop_stream() {

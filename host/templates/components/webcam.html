@@ -42,7 +42,7 @@
     </div>
 
     <div
-        class="bg-rgb(16,16,16) rounded-xl mb-4 p-2 flex justify-center items-center min-h-[240px] border border-gray-700/30 relative"
+        class="bg-gray-900 rounded-xl mb-4 p-2 flex justify-center items-center min-h-[240px] border border-gray-700/30 relative"
     >
         <canvas
             id="webcam-canvas-{{ ip }}"
@@ -181,103 +181,110 @@
 </div>
 
 <script>
-    (function () {
-        const canvas = document.getElementById("webcam-canvas-{{ ip }}");
-        const fullscreenCanvas = document.getElementById(
-            "fullscreen-canvas-{{ ip }}",
-        );
-        const ctx = canvas?.getContext("2d");
-        const fullscreenCtx = fullscreenCanvas?.getContext("2d");
-        const clientId = "{{ ip }}";
+    // Initialize webcam on load
+    document.addEventListener("DOMContentLoaded", function () {
+        initWebcamForClient("{{ ip }}");
+    });
 
-        if (!canvas || !fullscreenCanvas) return;
+    // Also initialize if loaded via HTMX
+    if (typeof htmx !== "undefined") {
+        htmx.onLoad(function () {
+            initWebcamForClient("{{ ip }}");
+        });
+    }
+
+    function initWebcamForClient(clientId) {
+        const canvas = document.getElementById(`webcam-canvas-${clientId}`);
+        const fullscreenCanvas = document.getElementById(
+            `fullscreen-canvas-${clientId}`,
+        );
+
+        if (!canvas || !fullscreenCanvas) {
+            console.log(`Webcam canvases not found for ${clientId}`);
+            return;
+        }
+
+        const ctx = canvas.getContext("2d");
+        const fullscreenCtx = fullscreenCanvas.getContext("2d");
 
         const wsProtocol =
             window.location.protocol === "https:" ? "wss:" : "ws:";
         const wsUrl = `${wsProtocol}//${window.location.host}/ws/feed/${clientId}`;
 
+        console.log(`Connecting webcam WebSocket for ${clientId}: ${wsUrl}`);
         let ws = new WebSocket(wsUrl);
 
-        ws.onopen = () =>
-            console.log(`Connected to webcam feed for ${clientId}`);
-        ws.onerror = (err) => console.error("WebSocket Error:", err);
+        ws.onopen = () => console.log(`✅ Webcam connected for ${clientId}`);
+        ws.onerror = (err) =>
+            console.error(`❌ Webcam error for ${clientId}:`, err);
         ws.onclose = () =>
-            console.log(`Disconnected from webcam feed for ${clientId}`);
+            console.log(`⭕ Webcam disconnected for ${clientId}`);
 
         ws.onmessage = async (event) => {
-            if (event.data instanceof Blob) {
-                try {
-                    const image = await createImageBitmap(event.data);
+            let data = event.data;
+            if (data instanceof ArrayBuffer) {
+                data = new Blob([data]);
+            }
 
-                    // Update main canvas
+            if (data instanceof Blob) {
+                try {
+                    const image = await createImageBitmap(data);
+
                     canvas.width = image.width;
                     canvas.height = image.height;
                     ctx.drawImage(image, 0, 0);
 
-                    // Update fullscreen canvas
                     fullscreenCanvas.width = image.width;
                     fullscreenCanvas.height = image.height;
                     fullscreenCtx.drawImage(image, 0, 0);
 
                     image.close();
                 } catch (e) {
-                    console.error("Error drawing image:", e);
+                    console.error(
+                        `Error processing webcam image for ${clientId}:`,
+                        e,
+                    );
                 }
             }
         };
 
+        // Reconnection logic
         setInterval(() => {
             if (ws.readyState === WebSocket.CLOSED) {
-                console.log("Reconnecting to webcam feed...");
+                console.log(`Reconnecting webcam for ${clientId}...`);
                 ws = new WebSocket(wsUrl);
+                ws.onopen = () =>
+                    console.log(`✅ Webcam reconnected for ${clientId}`);
+                ws.onerror = (err) =>
+                    console.error(
+                        `❌ Webcam reconnect error for ${clientId}:`,
+                        err,
+                    );
+                ws.onclose = () =>
+                    console.log(`⭕ Webcam reconnect closed for ${clientId}`);
+                ws.onmessage = async (event) => {
+                    let data = event.data;
+                    if (data instanceof ArrayBuffer) data = new Blob([data]);
+                    if (data instanceof Blob) {
+                        try {
+                            const image = await createImageBitmap(data);
+                            canvas.width = image.width;
+                            canvas.height = image.height;
+                            ctx.drawImage(image, 0, 0);
+                            fullscreenCanvas.width = image.width;
+                            fullscreenCanvas.height = image.height;
+                            fullscreenCtx.drawImage(image, 0, 0);
+                            image.close();
+                        } catch (e) {
+                            console.error(
+                                `Error processing webcam image for ${clientId}:`,
+                                e,
+                            );
+                        }
+                    }
+                };
             }
         }, 5000);
-
-        // ESC key handler for fullscreen
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape") {
-                closeFullscreenWebcam("{{ ip }}");
-            }
-        });
-    })();
-
-    // Webcam control functions
-    function openFullscreenWebcam(clientId) {
-        const modal = document.getElementById(`fullscreen-webcam-${clientId}`);
-        if (modal) {
-            modal.classList.remove("hidden");
-            document.body.style.overflow = "hidden";
-        }
-    }
-
-    function closeFullscreenWebcam(clientId) {
-        const modal = document.getElementById(`fullscreen-webcam-${clientId}`);
-        if (modal) {
-            modal.classList.add("hidden");
-            document.body.style.overflow = "";
-        }
-    }
-
-    function hideWebcam(clientId) {
-        const section = document.getElementById(`webcam-section-${clientId}`);
-        const placeholder = document.getElementById(
-            `webcam-placeholder-${clientId}`,
-        );
-        if (section && placeholder) {
-            section.classList.add("hidden");
-            placeholder.classList.remove("hidden");
-        }
-    }
-
-    function showWebcam(clientId) {
-        const section = document.getElementById(`webcam-section-${clientId}`);
-        const placeholder = document.getElementById(
-            `webcam-placeholder-${clientId}`,
-        );
-        if (section && placeholder) {
-            section.classList.remove("hidden");
-            placeholder.classList.add("hidden");
-        }
     }
 </script>
 

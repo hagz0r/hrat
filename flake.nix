@@ -1,81 +1,74 @@
 {
-  description = "Dev shell and cross-compilation for hrat host + client";
+  description = "Dev shell for hrat host + client (PipeWire / SPA OK)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, rust-overlay }:
+  outputs = { self, nixpkgs }:
   let
-    nativeSystem = "x86_64-linux";
-    crossSystem = "x86_64-w64-mingw32";
+    system = "x86_64-linux";
+    pkgs   = nixpkgs.legacyPackages.${system};
 
-    pkgs = import nixpkgs {
-      system = nativeSystem;
-      overlays = [ rust-overlay.overlays.default ];
-    };
+    includePkgs = [
+      pkgs.glibc.dev
+      pkgs.llvmPackages.clang.cc
+      pkgs.pipewire.dev
+      pkgs.linuxHeaders
+      pkgs.libv4l.dev
+    ];
 
-    pkgsCross = import nixpkgs {
-      system = nativeSystem;
-      crossSystem = {
-        config = crossSystem;
-        openssl.static = true;
-      };
-    };
+    baseInc = pkgs.lib.makeSearchPath "include" includePkgs;
+    spaInc  = "${pkgs.pipewire.dev}/include/spa-0.2";
+    devInc  = "${baseInc}:${spaInc}";
 
-    rustToolchain = pkgs.rust-bin.stable.latest.default.override {
-      targets = ["x86_64-pc-windows-gnu"];
-    };
+    bindgenFlags = pkgs.lib.concatStringsSep " "
+      (map (p: "-I${p}/include") includePkgs ++ [ "-I${spaInc}" ]);
+
+    devLib = pkgs.lib.makeLibraryPath [
+      pkgs.pipewire
+      pkgs.libv4l
+    ];
 
     pythonEnv = pkgs.python3.withPackages (ps: [
-      ps.fastapi ps.uvicorn ps.jinja2 ps.python-multipart ps.websockets
+      ps.fastapi
+      ps.uvicorn
+      ps.jinja2
+      ps.python-multipart
+      ps.websockets
     ]);
   in
   {
-    # --- СРЕДА РАЗРАБОТКИ ДЛЯ LINUX ---
-    devShells.${nativeSystem}.default = pkgs.mkShell {
+    devShells.${system}.default = pkgs.mkShell {
       buildInputs = with pkgs; [
-        rustToolchain pkg-config gcc llvmPackages.clang llvmPackages.libclang
+        cargo rustc gcc llvmPackages.clang llvmPackages.libclang pkg-config
         glibc.dev linuxHeaders libv4l.dev pipewire alsa-lib udev
         xorg.libX11 xorg.libxcb dbus
         pythonEnv
       ];
-      LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+
+      C_INCLUDE_PATH     = devInc;
+      CPLUS_INCLUDE_PATH = devInc;
+      LIBRARY_PATH       = devLib;
+      LD_LIBRARY_PATH    = devLib;
+
       shellHook = ''
-        echo "--- hrat dev shell (Linux) ready ---"
+        # bindgen
+        export BINDGEN_EXTRA_CLANG_ARGS="${bindgenFlags}"
+        export LIBCLANG_PATH="${pkgs.llvmPackages.libclang.lib}/lib"
+
+        echo
+        echo "--- hrat dev shell ready ---"
+        echo
+	echo "cd client/ && RAT_HOST_IP=127.0.0.1 RAT_HOST_PORT=8080 cargo run --release"
+        echo "cd host/ && uvicorn main:app --reload"
+        echo
+
+
+        zeditor host 
+	zeditor client
       '';
-    };
-
-    # --- ПАКЕТЫ ДЛЯ СБОРКИ ---
-    packages.${nativeSystem} = {
-      # --- СБОРКА КЛИЕНТА ПОД WINDOWS ---
-      hrat-client-windows =
-        pkgsCross.rustPlatform.buildRustPackage {
-          pname = "hrat-client";
-          version = "0.1.0";
-
-          # ИСПРАВЛЕНИЕ №1: Указываем весь проект как источник.
-          # `self` — это специальная ссылка на директорию, где лежит flake.nix.
-          src = self;
-
-          # ИСПРАВЛЕНИЕ №2: Указываем сборщику, что нужно работать
-          # в поддиректории `client` внутри исходников.
-          sourceRoot = "source/client";
-
-          # ИСПРАВЛЕНИЕ №3: Теперь путь к lock-файлу указывается
-          # как и раньше, относительно корня проекта.
-          cargoLock.lockFile = ./client/Cargo.lock;
-
-          nativeBuildInputs = [
-            rustToolchain
-          ];
-
-          buildInputs = [ ];
-        };
     };
   };
 }
+

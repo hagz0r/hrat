@@ -16,8 +16,10 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 msg = await cmd_queue.get()
                 await websocket.send_text(msg)
                 cmd_queue.task_done()
-            except (asyncio.CancelledError, WebSocketDisconnect): break
-            except Exception: break
+            except (asyncio.CancelledError, WebSocketDisconnect):
+                break
+            except Exception:
+                break
 
     sender_task = asyncio.create_task(sender())
     try:
@@ -30,21 +32,57 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                 if results_queue:
                     await results_queue.put(message['text'])
             elif "bytes" in message:
-                await manager.forward_video_frame(message["bytes"], client_id)
-    except (WebSocketDisconnect, RuntimeError): pass
+                data = message["bytes"]
+                if not data:
+                    continue
+                stream_type = data[0]
+                # We forward the ENTIRE packet, including the prefix byte
+                if stream_type == 0x01:  # Webcam
+                    await manager.forward_video_frame(data, client_id)
+                elif stream_type == 0x02:  # Screen
+                    await manager.forward_screen_frame(data, client_id)
+
+    except (WebSocketDisconnect, RuntimeError):
+        pass
     finally:
         sender_task.cancel()
         manager.disconnect(client_id)
         print(f"Cleanup for client {client_id} complete.")
+
 
 @router.websocket("/ws/feed/{client_id}")
 async def websocket_feed_endpoint(websocket: WebSocket, client_id: str):
     await websocket.accept()
     manager.add_feed_viewer(websocket, client_id)
     try:
+        # Passively wait for the client to disconnect.
+        # This loop does nothing but keep the connection alive.
         while True:
-            await websocket.receive_text()
+            await asyncio.sleep(1)
     except WebSocketDisconnect:
+        # This is the expected way for the connection to close.
         pass
+    except Exception as e:
+        print(f"Webcam feed error for {client_id}: {e}")
     finally:
         manager.remove_feed_viewer(websocket, client_id)
+        print(f"Webcam viewer for {client_id} disconnected.")
+
+
+@router.websocket("/ws/screenfeed/{client_id}")
+async def websocket_screenfeed_endpoint(websocket: WebSocket, client_id: str):
+    await websocket.accept()
+    manager.add_screen_viewer(websocket, client_id)
+    try:
+        # Passively wait for the client to disconnect.
+        # This loop does nothing but keep the connection alive.
+        while True:
+            await asyncio.sleep(1)
+    except WebSocketDisconnect:
+        # This is the expected way for the connection to close.
+        pass
+    except Exception as e:
+        print(f"Screen feed error for {client_id}: {e}")
+    finally:
+        manager.remove_screen_viewer(websocket, client_id)
+        print(f"Screen viewer for {client_id} disconnected.")

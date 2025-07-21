@@ -16,7 +16,8 @@ class ConnectionManager:
                 },
                 "queue": asyncio.Queue(),
                 "results_queue" : asyncio.Queue(),
-                "feed_viewers": set()
+                "feed_viewers": set(),
+                "screen_viewers": set()
             }
             print(f"New client: {client_id}")
 
@@ -54,8 +55,32 @@ class ConnectionManager:
     async def forward_video_frame(self, frame_data: bytes, client_id: str):
         if client_id in self.active_connections:
             viewers = self.active_connections[client_id].get("feed_viewers", set())
+            disconnected_viewers = []
             for viewer_ws in viewers:
-                await viewer_ws.send_bytes(frame_data)
+                try:
+                    await viewer_ws.send_bytes(frame_data)
+                except Exception as e:
+                    print(f"Failed to send video frame to viewer: {e}")
+                    disconnected_viewers.append(viewer_ws)
+
+            # Remove disconnected viewers
+            for viewer_ws in disconnected_viewers:
+                viewers.discard(viewer_ws)
+
+    async def forward_screen_frame(self, frame_data: bytes, client_id: str):
+        if client_id in self.active_connections:
+            viewers = self.active_connections[client_id].get("screen_viewers", set())
+            disconnected_viewers = []
+            for viewer_ws in viewers:
+                try:
+                    await viewer_ws.send_bytes(frame_data)
+                except Exception as e:
+                    print(f"Failed to send screen frame to viewer: {e}")
+                    disconnected_viewers.append(viewer_ws)
+
+            # Remove disconnected viewers
+            for viewer_ws in disconnected_viewers:
+                viewers.discard(viewer_ws)
 
     def add_feed_viewer(self, websocket: WebSocket, client_id: str):
         if client_id in self.active_connections:
@@ -66,5 +91,15 @@ class ConnectionManager:
         if client_id in self.active_connections:
             self.active_connections[client_id]["feed_viewers"].discard(websocket)
             print(f"Viewer for {client_id} disconnected")
+
+    def add_screen_viewer(self, websocket: WebSocket, client_id: str):
+        if client_id in self.active_connections:
+            self.active_connections[client_id]["screen_viewers"].add(websocket)
+            print(f"New screen viewer for {client_id}")
+
+    def remove_screen_viewer(self, websocket: WebSocket, client_id: str):
+        if client_id in self.active_connections:
+            self.active_connections[client_id]["screen_viewers"].discard(websocket)
+            print(f"Screen viewer for {client_id} disconnected")
 
 manager = ConnectionManager()

