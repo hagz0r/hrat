@@ -87,7 +87,7 @@ impl TargetInformation {
     }
 }
 
-pub fn validate_tls_connection(ip: &str, port: i32) -> bool {
+pub fn validate_tls_connection(ip: &str, _port: i32) -> bool {
     // Simple validation to check if TLS is appropriate
     // In production, you might want more sophisticated validation
     if ip == "localhost" || ip == "127.0.0.1" {

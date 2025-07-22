@@ -369,8 +369,6 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "url",
- "win_desktop_duplication",
- "winapi",
 ]
 
 [[package]]
@@ -3151,18 +3149,6 @@ dependencies = [
  "home",
  "once_cell",
  "rustix",
-]
-
-[[package]]
-name = "win_desktop_duplication"
-version = "0.10.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40bf3b449e3e605054a7bdef8887af94564471cd02188262f7205c2ad625e6e0"
-dependencies = [
- "futures",
- "log",
- "tokio",
- "windows 0.57.0",
 ]
 
 [[package]]
