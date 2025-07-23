@@ -2085,6 +2085,7 @@ checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 [[package]]
 name = "scap"
 version = "0.0.8"
+source = "git+https://github.com/hagz0r/scap?branch=windows-capture-fix-merge-pls#5ded96820161287bf75cfbde1accf9575854692d"
 dependencies = [
  "cocoa 0.25.0",
  "core-graphics-helmer-fork",

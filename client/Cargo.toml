@@ -38,4 +38,4 @@ async-trait = "0.1.88"
 async-recursion = "1.1.1"
 image = "0.25.6"
 
-scap = { path = "../scap" }
+scap = { git = "https://github.com/hagz0r/scap", branch = "windows-capture-fix-merge-pls" }
