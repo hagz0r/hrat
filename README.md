@@ -1,98 +1,128 @@
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/42d7ec0b-69e5-4731-acc6-e95dbc913f22">
-</p>
+# hrat - Hagz0r's Remote Access Tool
 
-# hrat
+![Project Status: Alpha](https://img.shields.io/badge/status-alpha-red)
+![Cross-Platform](https://img.shields.io/badge/platform-Windows%20|%20Linux%20|%20macOS-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-### Alpha version.
+A cross-platform remote access tool with advanced monitoring and control capabilities. Designed for ethical hacking and remote system management.
 
-### Some of the functions not yet implemented
+## Key Features
 
-hrat is a remote access tool (RAT) that offers a wide range of functionalities to remotely control and monitor a target
-system. The project is open source and welcomes contributions. The following features are available in hrat:
+### Core Capabilities
 
-### Features
+- **Cross-Platform Operation**: Full support for Windows, Linux, and macOS
+- **Secure Communication**: TLS-encrypted WebSocket connections
+- **Polymorphic Techniques**: AV evasion through code obfuscation and payload variation
 
-### **Software bypass of the LED on webcams less than or equal to 59 hertz will be after the article is released on Medium**
+### Remote Monitoring
 
-Web Interface
+- **Screen Capture**: Real-time desktop streaming & screenshot capture
+- **Webcam Access**: Photo capture and video streaming
+- **Process Management**: Live process monitoring and termination
+- **Keylogging**: Keystroke capture and analysis
+- **Audio Monitoring**: Microphone recording capabilities
 
-![Interface Preview](https://i.ibb.co/RphkBfMn/image.png)
+### System Interaction
 
-Polymorphism and Security
+- **Remote Shell**: Full terminal access with PowerShell/Bash support
+- **File System Explorer**:
+  - File upload/download
+  - Directory traversal
+  - File execution
+- **Registry Editing** (Windows): Remote registry manipulation
 
-- Polymorphism: Bypass antivirus detection using encryption and other polymorphic techniques.
+### Data Collection
 
-Remote Monitoring
+- **Credential Harvesting**:
+  - Browser password extraction
+  - Cookie database retrieval
+  - Credit card data capture
+- **System Intelligence**:
+  - Hardware inventory
+  - Network configuration
+  - Geolocation tracking
 
-- Remote Screen Viewing: View the target's screen in real-time.
-  Webcam Access: Access and view the target's webcam.
-  Task Manager Access: Remotely access the task manager.
-  Remote CMD: Execute commands on the target system via the command prompt.
+### Additional Modules
 
-Audio
+- **Chat System**: Bidirectional communication channel
+- **Trolling Toolkit**:
+  - Fake error messages
+  - Website redirection
+  - Clipboard manipulation
+- **Persistence Mechanisms**: Startup registration and service installation
 
-- Text-to-Speech: Convert text to speech on the target system.
-  Playing Audio Files: Play recorded audio files on the target system.
-  Microphone Listening: Listen to the target's microphone.
+## Web Interface
 
-Data Retrieval
+![Web Interface Preview](https://i.ibb.co/gb1BxkyX/image.png)
 
-- Cookies: Retrieve browser cookies.
-- Passwords: Retrieve stored passwords.
-- Forms: Retrieve form data.
-- Credit Card Information: Retrieve stored credit card information.
-- Client Data: Retrieve data from various clients such as:
-  Steam
-  Telegram
-  Discord
+Showing Super and Client builder pages,
 
-Keylogger
+Access through `https://[SERVER_IP]:[SERVER_PORT]` featuring:
 
-- Keylogging: Capture and log keystrokes.
+- Real-time system dashboards
+- Interactive file browser
+- Live screen/view control
+- Chat interface
+- Task management console
 
-Chat
+## Installation
 
-- Chat Application: Communicate with the target through a built-in chat application.
+### Server Setup
 
-Trolling
+```bash
+# Clone repository
+git clone https://github.com/hagz0r/hrat.git
 
-- Message Boxes: Display custom message boxes on the target system.
-- Opening Links: Open specified links in the target's browser.
-- Clipboard Manipulation: Access and modify the clipboard content.
-- Mouse Reassignment: Reassign mouse buttons, trigger BSOD, forkbomb, etc.
-- Taskbar and Desktop Manipulation: Hide the taskbar, hide desktop icons, flip the screen orientation.
-
-Remote Code Execution
-
-- Code Execution: Execute code remotely in various languages:
-  Rust
-  C#
-  C++
-  Batch Scripts
-  Powershell
-
-### Usage
-
-1. First you will need to set up webserver.
-   Repository contains one, but u can also write your own since it really easy
-
-Repository also contains C&C interface which u can use soon
-
-Install dependencies
-
-```
+# Install dependencies
 pip install -r requirements.txt
+
+# Start server
+uvicorn main:app --host 0.0.0.0 --port 8443 --ssl-keyfile key.pem --ssl-certfile cert.pem
 ```
 
-Run Web-client
+### Client Deployment
+
+```bash
+# Build optimized binary
+cargo build --release
+
+# Run with custom configuration
+RAT_HOST_IP=your.server.ip RAT_USE_TLS=true ./target/release/client
 ```
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+## Configuration
+
+### Essential Environment Variables
+
+| Variable        | Default   | Description               |
+| --------------- | --------- | ------------------------- |
+| `RAT_HOST_IP`   | 127.0.0.1 | Control server IP address |
+| `RAT_HOST_PORT` | 8443      | Server port number        |
+| `RAT_USE_TLS`   | true      | Enable TLS encryption     |
+
+### Advanced Options
+
+```bash
+# Debug mode with verbose logging
+RAT_DEBUG=1 cargo run --features dev-logs
+
+# Custom TLS certificates
+RAT_CA_BUNDLE=/path/to/ca.pem cargo run
 ```
 
-### License
+## Security Considerations
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+⚠️ **Ethical Use Warning**: This tool should only be used on systems you own or have explicit permission to access.
 
-Contributions
-Contributions are welcome! Please feel free to fork the repository and submit pull requests.
+- All network communication uses TLS 1.3 encryption
+- Certificate pinning for server authentication
+- Memory encryption for sensitive operations
+- Automatic connection obfuscation techniques
+
+## Contributing
+
+We welcome contributions! Please see our [Contribution Guidelines](CONTRIBUTING.md) for details.
+
+## License
+
+MIT License
