@@ -18,8 +18,46 @@ const STREAM_PREFIX: u8 = 0x02;
    Haven't tested on Windows yet
 *
 *
-*
+* I also hate windows, as it requires doing a lot of shit, just because of how shitty windows threads are
 */
+
+#[cfg(target_os = "windows")]
+mod win_send {
+    use scap::capturer::Capturer;
+    use std::ops::{Deref, DerefMut};
+
+    pub struct SendCapturer(pub Capturer);
+
+    unsafe impl Send for SendCapturer {}
+    unsafe impl Sync for SendCapturer {}
+
+    impl Deref for SendCapturer {
+        type Target = Capturer;
+        fn deref(&self) -> &Self::Target {
+            &self.0
+        }
+    }
+    impl DerefMut for SendCapturer {
+        fn deref_mut(&mut self) -> &mut Self::Target {
+            &mut self.0
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+type CapInner = win_send::SendCapturer;
+#[cfg(not(target_os = "windows"))]
+type CapInner = scap::capturer::Capturer;
+
+#[cfg(target_os = "windows")]
+fn into_cap_inner(c: Capturer) -> CapInner {
+    win_send::SendCapturer(c)
+}
+
+#[cfg(not(target_os = "windows"))]
+fn into_cap_inner(c: Capturer) -> CapInner {
+    c
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct EncodeParams {
@@ -41,10 +79,14 @@ impl Default for EncodeParams {
 }
 
 pub struct RemoteScreen {
-    capturer: Arc<Mutex<Capturer>>,
+    capturer: Arc<Mutex<CapInner>>,
     is_streaming: StreamingState,
     params: EncodeParams,
 }
+
+// ─── Windows‑shim ────────────────────────────────────────────────────────────
+#[cfg(target_os = "windows")]
+unsafe impl Send for RemoteScreen {} // гарантия: мы НЕ двигаем Capturer между потоками
 
 #[async_trait]
 impl Actor for RemoteScreen {
@@ -86,11 +128,33 @@ impl Actor for RemoteScreen {
                 let capt = self.capturer.clone();
                 let params = self.params;
                 let wr = writer.clone();
+
+                // // ── Linux/mac ─ spawn отдельно ──────────────────────────────
+                // #[cfg(not(target_os = "windows"))]
+                // tokio::spawn(async move {
+                //     if let Err(e) = Self::stream_task(capt, state, wr, params).await {
+                //         crate::dev_print!("[RS Stream] error {e}");
+                //     }
+                // });
+
+                // // ── Windows ─ выполняем в том же task‑е ─────────────────────
+                // #[cfg(target_os = "windows")]
+                // {
+                //     // без await здесь мы заблокируем handler;
+                //     // поэтому отпускаем lock `guard`, а task идёт дальше.
+
+                //     let _ = tokio::task::spawn_local(async move {
+                //         let _ = Self::stream_task(capt, state, wr, params).await;
+                //     });
+                // }
+                //
+                //
                 tokio::spawn(async move {
                     if let Err(e) = Self::stream_task(capt, state, wr, params).await {
                         crate::dev_print!("[RS Stream] error {e}");
                     }
                 });
+
                 Ok(())
             }
             "stream_stop" => {
@@ -105,7 +169,7 @@ impl Actor for RemoteScreen {
 impl RemoteScreen {
     // ---------------- single‑frame (screenshot) --------------------------------------------------
     async fn grab_single_frame(
-        capturer: Arc<Mutex<Capturer>>,
+        capturer: Arc<Mutex<CapInner>>,
         compress: bool,
         params: EncodeParams,
     ) -> anyhow::Result<Vec<u8>> {
@@ -132,7 +196,7 @@ impl RemoteScreen {
 
     // ---------------- continuous stream ---------------------------------------------------------
     async fn stream_task(
-        capturer: Arc<Mutex<Capturer>>,
+        capturer: Arc<Mutex<CapInner>>,
         is_streaming: StreamingState,
         writer: WsMessageSender,
         params: EncodeParams,
@@ -163,19 +227,36 @@ impl RemoteScreen {
         }
 
         while *is_streaming.lock().await {
-            let capt = capturer.clone();
-            let q = params.jpeg_quality;
-            let res = tokio::task::spawn_blocking(move || {
-                let cap = capt.blocking_lock();
+            // ── Linux/mac: offload в blocking‑pool ─────────────────────────
+            #[cfg(not(target_os = "windows"))]
+            let res = {
+                let capt = capturer.clone();
+                let q = params.jpeg_quality;
+                tokio::task::spawn_blocking(move || {
+                    let cap = capt.blocking_lock();
+                    match cap.get_next_frame() {
+                        Ok(frm) => {
+                            let (w, h) = Self::frame_dims(&frm);
+                            Self::encode_frame(&frm, w, h, true, q)
+                        }
+                        Err(e) => Err(e.into()),
+                    }
+                })
+                .await?
+            };
+
+            // ── Windows: делаем синхронно (дёшево) ─────────────────────────
+            #[cfg(target_os = "windows")]
+            let res = {
+                let cap = capturer.lock().await;
                 match cap.get_next_frame() {
                     Ok(frm) => {
-                        let (w, h) = RemoteScreen::frame_dims(&frm);
-                        RemoteScreen::encode_frame(&frm, w, h, true, q)
+                        let (w, h) = Self::frame_dims(&frm);
+                        Self::encode_frame(&frm, w, h, true, params.jpeg_quality)
                     }
                     Err(e) => Err(e.into()),
                 }
-            })
-            .await?;
+            };
 
             if let Ok(buf) = res {
                 let mut out = Vec::with_capacity(1 + buf.len());
@@ -259,7 +340,7 @@ impl RemoteScreen {
         Ok(jpeg)
     }
 
-    fn build_capturer() -> anyhow::Result<Capturer> {
+    fn build_capturer() -> anyhow::Result<CapInner> {
         if !scap::is_supported() {
             return Err(anyhow::anyhow!("scap not supported"));
         }
@@ -270,12 +351,14 @@ impl RemoteScreen {
             fps: 30,
             target: None,
             show_cursor: true,
-            show_highlight: true,
+            show_highlight: false,
             excluded_targets: None,
             output_type: FrameType::BGRAFrame,
             output_resolution: Resolution::_1080p,
             crop_area: None,
         };
-        Capturer::build(opts).map_err(|e| e.into())
+        Capturer::build(opts)
+            .map(into_cap_inner)
+            .map_err(|e| e.into())
     }
 }

@@ -18,9 +18,9 @@ async fn main() {
     let host_ip = std::env::var("RAT_HOST_IP")
         .unwrap_or_else(|_| "127.0.0.1".to_string())
         .to_string();
-    let host_port = std::env::var("RAT_HOST_PORT").unwrap_or_else(|_| "8080".to_string());
+    let host_port = std::env::var("RAT_HOST_PORT").unwrap_or_else(|_| "8000".to_string());
     let use_tls = std::env::var("RAT_USE_TLS")
-        .unwrap_or_else(|_| "true".to_string())
+        .unwrap_or_else(|_| "false".to_string())
         .to_lowercase()
         == "true";
 

@@ -26,7 +26,6 @@ pub trait Actor {
     where
         Self: Sized;
     async fn handler(&mut self, command: Command, writer: WsMessageSender) -> HandlerResult;
-    // async fn handler(&mut self, command: Command, writer: ArcMutexSocketWriter) -> HandlerResult;
 }
 
 pub fn run_actor<A: Actor + Send + 'static>(
