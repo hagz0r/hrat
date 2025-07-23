@@ -53,8 +53,9 @@ A cross-platform remote access tool with advanced monitoring and control capabil
 
 ## Web Interface
 
-![Web Interface Preview](https://i.ibb.co/gb1BxkyX/image.png)
-
+![Web Interface Preview](https://i.ibb.co/FLHbkPt6/chrome-o-Vg9fw58-UA.png)
+![All Functions menu preview](https://i.ibb.co/TMRBmQX4/chrome-yjb-FLxp3i6.png)
+![Builder preview](https://i.ibb.co/r9ZVm8N/chrome-D0pe-Qev-UAq.png)
 Showing Super and Client builder pages,
 
 Access through `https://[SERVER_IP]:[SERVER_PORT]` featuring:
