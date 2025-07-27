@@ -84,10 +84,8 @@ pub struct RemoteScreen {
     params: EncodeParams,
 }
 
-// ─── Windows‑shim ────────────────────────────────────────────────────────────
 #[cfg(target_os = "windows")]
-unsafe impl Send for RemoteScreen {} // гарантия: мы НЕ двигаем Capturer между потоками
-
+unsafe impl Send for RemoteScreen {}
 #[async_trait]
 impl Actor for RemoteScreen {
     fn new() -> Self {
@@ -129,26 +127,6 @@ impl Actor for RemoteScreen {
                 let params = self.params;
                 let wr = writer.clone();
 
-                // // ── Linux/mac ─ spawn отдельно ──────────────────────────────
-                // #[cfg(not(target_os = "windows"))]
-                // tokio::spawn(async move {
-                //     if let Err(e) = Self::stream_task(capt, state, wr, params).await {
-                //         crate::dev_print!("[RS Stream] error {e}");
-                //     }
-                // });
-
-                // // ── Windows ─ выполняем в том же task‑е ─────────────────────
-                // #[cfg(target_os = "windows")]
-                // {
-                //     // без await здесь мы заблокируем handler;
-                //     // поэтому отпускаем lock `guard`, а task идёт дальше.
-
-                //     let _ = tokio::task::spawn_local(async move {
-                //         let _ = Self::stream_task(capt, state, wr, params).await;
-                //     });
-                // }
-                //
-                //
                 tokio::spawn(async move {
                     if let Err(e) = Self::stream_task(capt, state, wr, params).await {
                         crate::dev_print!("[RS Stream] error {e}");
@@ -167,7 +145,6 @@ impl Actor for RemoteScreen {
 }
 
 impl RemoteScreen {
-    // ---------------- single‑frame (screenshot) --------------------------------------------------
     async fn grab_single_frame(
         capturer: Arc<Mutex<CapInner>>,
         compress: bool,
@@ -194,14 +171,12 @@ impl RemoteScreen {
         Ok(out)
     }
 
-    // ---------------- continuous stream ---------------------------------------------------------
     async fn stream_task(
         capturer: Arc<Mutex<CapInner>>,
         is_streaming: StreamingState,
         writer: WsMessageSender,
         params: EncodeParams,
     ) -> anyhow::Result<()> {
-        // -- init & first frame --
         {
             let mut cap = capturer.lock().await;
             cap.start_capture();
@@ -227,7 +202,6 @@ impl RemoteScreen {
         }
 
         while *is_streaming.lock().await {
-            // ── Linux/mac: offload в blocking‑pool ─────────────────────────
             #[cfg(not(target_os = "windows"))]
             let res = {
                 let capt = capturer.clone();
@@ -245,7 +219,6 @@ impl RemoteScreen {
                 .await?
             };
 
-            // ── Windows: делаем синхронно (дёшево) ─────────────────────────
             #[cfg(target_os = "windows")]
             let res = {
                 let cap = capturer.lock().await;
@@ -268,7 +241,6 @@ impl RemoteScreen {
             }
             tokio::time::sleep(params.frame_interval).await;
         }
-        // stop
         capturer.lock().await.stop_capture();
         Ok(())
     }
