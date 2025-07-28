@@ -12,6 +12,7 @@ use crate::utils::{
 
 mod actors;
 mod dispatcher;
+mod gui;
 mod utils;
 #[tokio::main]
 async fn main() {

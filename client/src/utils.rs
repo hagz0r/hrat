@@ -15,17 +15,19 @@ pub fn is_port_valid(port: &str) -> bool {
 
 #[macro_export]
 macro_rules! dev_print {
-    ($($arg:tt)*) => {
-        #[cfg(feature = "dev-logs")]
-        println!($($arg)*);
-    }
+    ($($arg:tt)*) => {{
+        if cfg!(feature = "dev-logs") {
+            println!($($arg)*);
+        }
+    }}
 }
 #[macro_export]
 macro_rules! dev_eprint {
-    ($($arg:tt)*) => {
-        #[cfg(feature = "dev-logs")]
-        eprintln!($($arg)*);
-    }
+    ($($arg:tt)*) => {{
+        if cfg!(feature = "dev-logs") {
+            eprintln!($($arg)*);
+        }
+    }}
 }
 
 #[derive(Clone)]
@@ -89,7 +91,6 @@ impl TargetInformation {
 
 pub fn validate_tls_connection(ip: &str, _port: i32) -> bool {
     // Simple validation to check if TLS is appropriate
-    // In production, you might want more sophisticated validation
     if ip == "localhost" || ip == "127.0.0.1" {
         // For localhost, TLS might not be necessary in development
         return true;

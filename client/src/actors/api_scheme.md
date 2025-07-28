@@ -171,25 +171,22 @@ Controls the keylogging functionality. _(Note: Schema is based on intended funct
 
 ### 7. Chat (`CH`)
 
-Manages a two-way chat with the target machine. _(Note: Schema is based on intended functionality; implementation is pending)_
+Manages a two-way chat with the target machine.
 
 | `args` Key | Type   | Required?    | Description                                           |
 | :--------- | :----- | :----------- | :---------------------------------------------------- |
 | `action`   | String | Yes          | `"start"`, `"send"`, `"stop"`.                        |
 | `message`  | String | For `"send"` | The message text to send to the target's chat window. |
 
-**Example (Send a message):**
+**Example (Start chat):**
 
 ```json
 {
   "module": "CH",
   "args": {
-    "action": "send",
-    "message": "Can you hear me?"
+    "action": "start"
   }
 }
-```
-
 ---
 
 ### 8. Other Modules (Not Yet Implemented)
@@ -200,3 +197,4 @@ The following modules are defined in the router but their implementation is pend
 | :----- | :-------------------- | :------------------------------------------------------------ |
 | `AD`   | Audio                 | Record and stream audio from the microphone.                  |
 | `RCE`  | Remote Code Execution | Execute arbitrary code (e.g., scripts) on the target machine. |
+```

